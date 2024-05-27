@@ -1,20 +1,5 @@
-# Ignore virtual environment
-venv/
-.venv/
-env/
-
-# Ignore compiled Python files
-*.pyc
-__pycache__/
-
-# Ignore IDE/editor configuration
 .vscode/
-.idea/
-
-# Ignore dependency management files
-.requirements.txt
-.pipfile
-.poetry.lock
-
-# Ignore sensitive data
+venv/
 .env
+session_name.session
+data/
