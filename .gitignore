@@ -3,3 +3,4 @@ venv/
 .env
 session_name.session
 data/
+__pycache__/
