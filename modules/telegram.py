@@ -1,5 +1,6 @@
 import json
 import os
+import config
 
 from dotenv import load_dotenv
 from telethon.sync import TelegramClient
@@ -24,7 +25,7 @@ async def get_unread_counts(last_message_ids):
                 difference = message_id - last_message_id
             else:
                 last_message_id = message_id
-                difference = 15
+                difference = config.NEW_CHANNEL_LAST_MESSAGES_AMOUNT
             unread_counts[channel_name] = difference
             last_message_ids[channel_name] = message_id
     return unread_counts
@@ -83,13 +84,13 @@ def save_messages_to_splitted_txt(all_new_messages):
         
         for message in new_messages_of_channel['messages']:
             new_messages_of_channel_mod['messages'].append({
-                'message_start': '[',
+                'message_start': '(',
                 'message_date': message['message_date'],
                 'content': message['content'],
-                'message_end': ']'
+                'message_end': ')'
             })
         
-        splitted_data = split_prompt(json.dumps(new_messages_of_channel_mod), 2000)
+        splitted_data = split_prompt(json.dumps(new_messages_of_channel_mod), config.SPLIT_LENGTH_FOR_PROMPT)
         
         for data_item in splitted_data:
             with open(f'data/splitted_messages/{channel_name}/{data_item['name']}.txt', 'w', encoding='utf-8') as f:
