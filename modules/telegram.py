@@ -9,45 +9,96 @@ load_dotenv()
 api_id = os.getenv('TELEGRAM_API_ID')
 api_hash = os.getenv('TELEGRAM_API_HASH')
 phone_number = os.getenv('TELEGRAM_PHONE_NUMBER')
-channel_usernames = os.getenv('TELEGRAM_CHANNEL_USERNAMES').split(',')
+channel_names = os.getenv('TELEGRAM_CHANNEL_NAMES').split(',')
 
 client = TelegramClient('session_name', api_id, api_hash)
 
 async def get_unread_counts(last_message_ids):
     unread_counts = {}
-    for channel_username in channel_usernames:
-        channel = await client.get_entity(channel_username)
+    for channel_name in channel_names:
+        channel = await client.get_entity(channel_name)
         async for message in client.iter_messages(channel, limit=1):
             message_id = message.id
-            if channel_username in last_message_ids:
-                last_message_id = last_message_ids[channel_username]
+            if channel_name in last_message_ids:
+                last_message_id = last_message_ids[channel_name]
                 difference = message_id - last_message_id
             else:
                 last_message_id = message_id
                 difference = 15
-            unread_counts[channel_username] = difference
-            last_message_ids[channel_username] = message_id
+            unread_counts[channel_name] = difference
+            last_message_ids[channel_name] = message_id
     return unread_counts
   
-async def get_new_messages(unread_counts):
-    new_messages = []
-    for channel_username in channel_usernames:
-          if channel_username in unread_counts and unread_counts[channel_username] > 0:
-              channel = await client.get_entity(channel_username)
-              message_data = {
-                  'channel': channel_username,
+async def get_all_new_messages(last_message_ids):
+    unread_counts = await get_unread_counts(last_message_ids)
+    all_new_messages = []
+    for channel_name in channel_names:
+          if channel_name in unread_counts and unread_counts[channel_name] > 0:
+              channel = await client.get_entity(channel_name)
+              new_messages_of_channel = {
+                  'channel': channel_name,
                   'messages': []
               }
-              async for message in client.iter_messages(channel, limit=unread_counts[channel_username]):
-                  message_data['messages'].append({
-                      'message_start': '[',
+              async for message in client.iter_messages(channel, limit=unread_counts[channel_name]):
+                  new_messages_of_channel['messages'].append({
                       'message_date': message.date.isoformat(),
-                      # 'message_id': message.id,
                       'content': message.text,
-                      'message_end': ']',
                   })
-              new_messages.append(message_data)
-    return new_messages
+              all_new_messages.append(new_messages_of_channel)
+    return all_new_messages
+  
+def save_messages_to_json(all_new_messages):
+    updated_channels=[]
+    for new_messages_of_channel in all_new_messages:
+        channel_name = new_messages_of_channel['channel']
+
+        if not os.path.exists(f'data/json_messages'):
+            os.makedirs(f'data/json_messages')
+        
+        with open(f'data/json_messages/{channel_name}.json', 'w', encoding='utf-8') as f:
+            json.dump(new_messages_of_channel, f, ensure_ascii=False, indent=4)
+        updated_channels.append(channel_name)
+        
+    for channel_name in channel_names:
+        if channel_name not in updated_channels:
+            delete_file(f'data/json_messages/{channel_name}.json')
+    
+    
+        
+def save_messages_to_splitted_txt(all_new_messages):
+    updated_channels=[]
+    for new_messages_of_channel in all_new_messages:
+        channel_name = new_messages_of_channel['channel']
+
+        if not os.path.exists(f'data/splitted_messages'):
+            os.makedirs(f'data/splitted_messages')
+
+        if not os.path.exists(f'data/splitted_messages/{channel_name}'):
+            os.makedirs(f'data/splitted_messages/{channel_name}')
+        
+        new_messages_of_channel_mod = {
+            'channel': channel_name,
+            'messages': []
+        }
+        
+        for message in new_messages_of_channel['messages']:
+            new_messages_of_channel_mod['messages'].append({
+                'message_start': '[',
+                'message_date': message['message_date'],
+                'content': message['content'],
+                'message_end': ']'
+            })
+        
+        splitted_data = split_prompt(json.dumps(new_messages_of_channel_mod), 2000)
+        
+        for data_item in splitted_data:
+            with open(f'data/splitted_messages/{channel_name}/{data_item['name']}.txt', 'w', encoding='utf-8') as f:
+                f.write(data_item['content'])
+        updated_channels.append(channel_name)
+        
+    for channel_name in channel_names:
+        if channel_name not in updated_channels:
+            delete_folder(f'data/splitted_messages/{channel_name}')
 
 async def save_telegram_messages():
     await client.start(phone_number)
@@ -58,40 +109,10 @@ async def save_telegram_messages():
     else:
         last_message_ids = {}
     
-    unread_counts = await get_unread_counts(last_message_ids)
-    new_messages = await get_new_messages(unread_counts)
-
-    updated_channels=[]
-    for message_data in new_messages:
-        channel_username = message_data['channel']
-
-        if not os.path.exists(f'data/json_messages'):
-            os.makedirs(f'data/json_messages')
-
-        if not os.path.exists(f'data/messages'):
-            os.makedirs(f'data/messages')
-
-        if not os.path.exists(f'data/messages/{channel_username}'):
-            os.makedirs(f'data/messages/{channel_username}')
-        
-        with open(f'data/json_messages/{channel_username}.json', 'w', encoding='utf-8') as f:
-            json.dump(message_data, f, ensure_ascii=False, indent=4)
-        updated_channels.append(channel_username)
-        
-        splitted_data = split_prompt(json.dumps(message_data), 2000)
-        for data_item in splitted_data:
-            with open(f'data/messages/{channel_username}/{data_item['name']}.txt', 'w', encoding='utf-8') as f:
-                f.write(data_item['content'])
-        updated_channels.append(channel_username)
-
-        
-        
-    for channel_username in channel_usernames:
-        if channel_username not in updated_channels:
-            delete_file(f'data/json_messages/{channel_username}.json')
-    for channel_username in channel_usernames:
-        if channel_username not in updated_channels:
-            delete_folder(f'data/messages/{channel_username}')
+    all_new_messages = await get_all_new_messages(last_message_ids)
+    
+    save_messages_to_json(all_new_messages)
+    save_messages_to_splitted_txt(all_new_messages)
         
     with open('data/last_message_ids.json', 'w', encoding='utf-8') as f:
         json.dump(last_message_ids, f, ensure_ascii=False, indent=4)
