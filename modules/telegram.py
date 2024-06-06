@@ -1,10 +1,10 @@
 import json
 import os
-import config
 
 from dotenv import load_dotenv
 from telethon.sync import TelegramClient
 from .utils import split_prompt, delete_folder, delete_file
+from .const import NEW_CHANNEL_LAST_MESSAGES_AMOUNT, SPLIT_LENGTH_FOR_PROMPT, KEY_WORDS
 
 load_dotenv()
 api_id = os.getenv('TELEGRAM_API_ID')
@@ -25,7 +25,7 @@ async def get_unread_counts(last_message_ids):
                 difference = message_id - last_message_id
             else:
                 last_message_id = message_id
-                difference = config.NEW_CHANNEL_LAST_MESSAGES_AMOUNT
+                difference = NEW_CHANNEL_LAST_MESSAGES_AMOUNT
             unread_counts[channel_name] = difference
             last_message_ids[channel_name] = message_id
     return unread_counts
@@ -48,6 +48,45 @@ async def get_all_new_messages(last_message_ids):
               all_new_messages.append(new_messages_of_channel)
     return all_new_messages
   
+def get_all_splitted_messages(all_new_messages):
+    all_splitted_messages = []
+    for new_messages_of_channel in all_new_messages:
+        channel_name = new_messages_of_channel['channel']
+        splitted_data = split_prompt(json.dumps(new_messages_of_channel), SPLIT_LENGTH_FOR_PROMPT)
+        all_splitted_messages.append({
+            'channel': channel_name,
+            'messages': splitted_data
+        })
+    return all_splitted_messages
+  
+def get_new_important_messages(all_new_messages):
+    new_important_messages = []
+    for new_messages_of_channel in all_new_messages:
+        channel_name = new_messages_of_channel['channel']
+        new_important_messages.append({
+          'channel': channel_name,
+          'messages': []
+        })
+        current_channel_messages = new_important_messages[-1]['messages']
+        found = False
+        for message in new_messages_of_channel['messages']:
+            if message['content'] is None:
+                continue
+            for word in KEY_WORDS['priority1']:
+                if word in message['content'].lower():
+                    current_channel_messages.append(message)
+                    found = True
+                    break
+            if found:
+                continue
+            for word in KEY_WORDS['priority2']:
+                if word in message['content'].lower():
+                    current_channel_messages.append(message)
+                    break
+        if not current_channel_messages:
+            new_important_messages.pop()
+    return new_important_messages
+  
 def save_messages_to_json(all_new_messages):
     updated_channels=[]
     for new_messages_of_channel in all_new_messages:
@@ -63,13 +102,12 @@ def save_messages_to_json(all_new_messages):
     for channel_name in channel_names:
         if channel_name not in updated_channels:
             delete_file(f'data/json_messages/{channel_name}.json')
-    
-    
-        
-def save_messages_to_splitted_txt(all_new_messages):
+            
+      
+def save_splitted_messages(all_splitted_messages):
     updated_channels=[]
-    for new_messages_of_channel in all_new_messages:
-        channel_name = new_messages_of_channel['channel']
+    for splitted_messages_of_channel in all_splitted_messages:
+        channel_name = splitted_messages_of_channel['channel']
 
         if not os.path.exists(f'data/splitted_messages'):
             os.makedirs(f'data/splitted_messages')
@@ -77,24 +115,9 @@ def save_messages_to_splitted_txt(all_new_messages):
         if not os.path.exists(f'data/splitted_messages/{channel_name}'):
             os.makedirs(f'data/splitted_messages/{channel_name}')
         
-        new_messages_of_channel_mod = {
-            'channel': channel_name,
-            'messages': []
-        }
-        
-        for message in new_messages_of_channel['messages']:
-            new_messages_of_channel_mod['messages'].append({
-                'message_start': '(',
-                'message_date': message['message_date'],
-                'content': message['content'],
-                'message_end': ')'
-            })
-        
-        splitted_data = split_prompt(json.dumps(new_messages_of_channel_mod), config.SPLIT_LENGTH_FOR_PROMPT)
-        
-        for data_item in splitted_data:
-            with open(f'data/splitted_messages/{channel_name}/{data_item['name']}.txt', 'w', encoding='utf-8') as f:
-                f.write(data_item['content'])
+        for messages_item in splitted_messages_of_channel['messages']:
+            with open(f'data/splitted_messages/{channel_name}/{messages_item['name']}.txt', 'w', encoding='utf-8') as f:
+                f.write(messages_item['content'])
         updated_channels.append(channel_name)
         
     for channel_name in channel_names:
@@ -111,9 +134,13 @@ async def save_telegram_messages():
         last_message_ids = {}
     
     all_new_messages = await get_all_new_messages(last_message_ids)
+    # all_splitted_messages = get_all_splitted_messages(all_new_messages) 
     
-    save_messages_to_json(all_new_messages)
-    save_messages_to_splitted_txt(all_new_messages)
+    # save_messages_to_json(all_new_messages)
+    # save_splitted_messages(all_splitted_messages)
+    
+    new_important_messages = get_new_important_messages(all_new_messages)
+    save_messages_to_json(new_important_messages)
         
     with open('data/last_message_ids.json', 'w', encoding='utf-8') as f:
         json.dump(last_message_ids, f, ensure_ascii=False, indent=4)
