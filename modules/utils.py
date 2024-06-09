@@ -29,7 +29,7 @@ def split_prompt(text, split_length):
     if split_length <= 0:
         raise ValueError("Max length must be greater than 0.")
 
-    num_parts = -(-len(text) // split_length)  # Calculate the number of parts
+    num_parts = -(-len(text) // split_length)
     file_data = []
 
     for i in range(num_parts):

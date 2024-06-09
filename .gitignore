@@ -4,3 +4,4 @@ venv/
 session_name.session
 data/
 __pycache__/
+*.db

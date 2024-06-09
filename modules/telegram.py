@@ -5,6 +5,7 @@ from dotenv import load_dotenv
 from telethon.sync import TelegramClient
 from .utils import split_prompt, delete_folder, delete_file
 from .const import NEW_CHANNEL_LAST_MESSAGES_AMOUNT, SPLIT_LENGTH_FOR_PROMPT, KEY_WORDS
+from modules.database import write_new_messages_to_db, write_db_to_dict
 
 load_dotenv()
 api_id = os.getenv('TELEGRAM_API_ID')
@@ -41,8 +42,8 @@ async def get_all_new_messages(last_message_ids):
                   'messages': []
               }
               async for message in client.iter_messages(channel, limit=unread_counts[channel_name]):
-                  new_messages_of_channel['messages'].append({
-                      'message_date': message.date.isoformat(),
+                  new_messages_of_channel['messages'].insert(0, {
+                      'date': message.date.isoformat(),
                       'content': message.text,
                   })
               all_new_messages.append(new_messages_of_channel)
@@ -63,28 +64,19 @@ def get_new_important_messages(all_new_messages):
     new_important_messages = []
     for new_messages_of_channel in all_new_messages:
         channel_name = new_messages_of_channel['channel']
-        new_important_messages.append({
-          'channel': channel_name,
-          'messages': []
-        })
-        current_channel_messages = new_important_messages[-1]['messages']
-        found = False
+        new_important_messages_of_channel = {
+            'channel': channel_name,
+            'messages': []
+        }
         for message in new_messages_of_channel['messages']:
             if message['content'] is None:
                 continue
             for word in KEY_WORDS['priority1']:
                 if word in message['content'].lower():
-                    current_channel_messages.append(message)
-                    found = True
+                    new_important_messages_of_channel['messages'].append(message)
                     break
-            if found:
-                continue
-            for word in KEY_WORDS['priority2']:
-                if word in message['content'].lower():
-                    current_channel_messages.append(message)
-                    break
-        if not current_channel_messages:
-            new_important_messages.pop()
+        if new_important_messages_of_channel['messages']:
+            new_important_messages.append(new_important_messages_of_channel)
     return new_important_messages
   
 def save_messages_to_json(all_new_messages):
@@ -127,6 +119,9 @@ def save_splitted_messages(all_splitted_messages):
 async def save_telegram_messages():
     await client.start(phone_number)
     
+    if not os.path.exists(f'data'):
+        os.makedirs(f'data')
+    
     if os.path.exists('data/last_message_ids.json'):
         with open('data/last_message_ids.json', 'r', encoding='utf-8') as f:
             last_message_ids = json.load(f)
@@ -134,13 +129,16 @@ async def save_telegram_messages():
         last_message_ids = {}
     
     all_new_messages = await get_all_new_messages(last_message_ids)
+    
+    # delete_file('info.db')
+    write_new_messages_to_db(all_new_messages)
     # all_splitted_messages = get_all_splitted_messages(all_new_messages) 
     
-    # save_messages_to_json(all_new_messages)
+    save_messages_to_json(all_new_messages)
     # save_splitted_messages(all_splitted_messages)
     
-    new_important_messages = get_new_important_messages(all_new_messages)
-    save_messages_to_json(new_important_messages)
+    # new_important_messages = get_new_important_messages(all_new_messages)
+    # save_messages_to_json(new_important_messages)
         
     with open('data/last_message_ids.json', 'w', encoding='utf-8') as f:
         json.dump(last_message_ids, f, ensure_ascii=False, indent=4)
