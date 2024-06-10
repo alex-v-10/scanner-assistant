@@ -15,7 +15,7 @@ def create_table():
     conn.commit()
     conn.close()
     
-def insert_data(channel, date, messages):
+def insert_messages(channel, date, messages):
     conn = sqlite3.connect('info.db')
     cursor = conn.cursor()
     cursor.execute('''
@@ -57,7 +57,7 @@ def write_new_messages_to_db(all_new_messages):
                     WHERE channel=? AND date=?
                 ''', (updated_messages, channel, date))
             else:
-                insert_data(channel, date, messages)
+                insert_messages(channel, date, messages)
             
             conn.commit()
             conn.close()

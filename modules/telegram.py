@@ -15,38 +15,30 @@ channel_names = os.getenv('TELEGRAM_CHANNEL_NAMES').split(',')
 
 client = TelegramClient('session_name', api_id, api_hash)
 
-async def get_unread_counts(last_message_ids):
-    unread_counts = {}
-    for channel_name in channel_names:
-        channel = await client.get_entity(channel_name)
-        async for message in client.iter_messages(channel, limit=1):
-            message_id = message.id
-            if channel_name in last_message_ids:
-                last_message_id = last_message_ids[channel_name]
-                difference = message_id - last_message_id
-            else:
-                last_message_id = message_id
-                difference = NEW_CHANNEL_LAST_MESSAGES_AMOUNT
-            unread_counts[channel_name] = difference
-            last_message_ids[channel_name] = message_id
-    return unread_counts
-  
+new_channels = []
+
 async def get_all_new_messages(last_message_ids):
-    unread_counts = await get_unread_counts(last_message_ids)
     all_new_messages = []
     for channel_name in channel_names:
-          if channel_name in unread_counts and unread_counts[channel_name] > 0:
-              channel = await client.get_entity(channel_name)
-              new_messages_of_channel = {
-                  'channel': channel_name,
-                  'messages': []
-              }
-              async for message in client.iter_messages(channel, limit=unread_counts[channel_name]):
-                  new_messages_of_channel['messages'].insert(0, {
-                      'date': message.date.isoformat(),
-                      'content': message.text,
-                  })
-              all_new_messages.append(new_messages_of_channel)
+        channel = await client.get_entity(channel_name)
+        new_messages_of_channel = {
+            'channel': channel_name,
+            'messages': []
+        }
+        isFirst = True
+        min_id = last_message_ids.get(channel_name, 0)
+        limit = None if min_id else NEW_CHANNEL_LAST_MESSAGES_AMOUNT
+        async for message in client.iter_messages(channel, min_id=min_id, limit=limit):
+            if isFirst:
+                last_message_ids[channel_name] = message.id
+                isFirst = False
+            new_messages_of_channel['messages'].insert(0, {
+                'id': message.id,
+                'date': message.date.isoformat(),
+                'content': message.text,
+            })
+        if new_messages_of_channel['messages']:
+            all_new_messages.append(new_messages_of_channel)
     return all_new_messages
   
 def get_all_splitted_messages(all_new_messages):
@@ -121,7 +113,7 @@ async def save_telegram_messages():
     
     if not os.path.exists(f'data'):
         os.makedirs(f'data')
-    
+    #TODO Use db
     if os.path.exists('data/last_message_ids.json'):
         with open('data/last_message_ids.json', 'r', encoding='utf-8') as f:
             last_message_ids = json.load(f)
