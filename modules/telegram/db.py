@@ -1,38 +1,24 @@
 import sqlite3
 import json
 
-def create_table():
+def insert_messages(channel, project, date, messages):
     conn = sqlite3.connect('info.db')
     cursor = conn.cursor()
     cursor.execute('''
-        CREATE TABLE IF NOT EXISTS channel_messages (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            channel TEXT,
-            date TEXT,
-            messages TEXT
-        )
-    ''')
-    conn.commit()
-    conn.close()
-    
-def insert_messages(channel, date, messages):
-    conn = sqlite3.connect('info.db')
-    cursor = conn.cursor()
-    cursor.execute('''
-        INSERT INTO channel_messages (channel, date, messages)
-        VALUES (?, ?, ?)
-    ''', (channel, date, json.dumps(messages)))
+        INSERT INTO telegram_messages (channel, project, date, messages)
+        VALUES (?, ?, ?, ?)
+    ''', (channel, project, date, json.dumps(messages)))
     
     conn.commit()
     conn.close()
     
 def write_new_messages_to_db(all_new_messages):
     for new_messages_of_channel in all_new_messages:
-        data = new_messages_of_channel
-        channel = data['channel']
+        channel = new_messages_of_channel['channel']
+        project = new_messages_of_channel['project']
         messages_by_date = {}
         
-        for message in data['messages']:
+        for message in new_messages_of_channel['messages']:
             date = message['date'][:10]
             if date not in messages_by_date:
                 messages_by_date[date] = []
@@ -42,7 +28,7 @@ def write_new_messages_to_db(all_new_messages):
             conn = sqlite3.connect('info.db')
             cursor = conn.cursor()
             cursor.execute('''
-                SELECT messages FROM channel_messages
+                SELECT messages FROM telegram_messages
                 WHERE channel=? AND date=?
             ''', (channel, date))
             existing_messages = cursor.fetchone()
@@ -52,39 +38,33 @@ def write_new_messages_to_db(all_new_messages):
                 existing_messages.extend(messages)
                 updated_messages = json.dumps(existing_messages)
                 cursor.execute('''
-                    UPDATE channel_messages
+                    UPDATE telegram_messages
                     SET messages=?
                     WHERE channel=? AND date=?
                 ''', (updated_messages, channel, date))
             else:
-                insert_messages(channel, date, messages)
+                insert_messages(channel, project, date, messages)
             
             conn.commit()
             conn.close()
-            
-def write_db_to_dict():
+
+def get_last_message_ids():
     conn = sqlite3.connect('info.db')
     cursor = conn.cursor()
-    
-    cursor.execute('SELECT * FROM channel_messages')
+    cursor.execute('SELECT channel, last_id FROM telegram_last_ids')
     rows = cursor.fetchall()
+    conn.close()
+    return {row[0]: row[1] for row in rows}
+
+def update_last_message_ids(last_message_ids):
+    for channel, last_id in last_message_ids.items():
+        conn = sqlite3.connect('info.db')
+        cursor = conn.cursor()
+        cursor.execute('''
+            INSERT INTO telegram_last_ids (channel, last_id)
+            VALUES (?, ?)
+            ON CONFLICT(channel) DO UPDATE SET last_id=excluded.last_id
+        ''', (channel, last_id))
+        conn.commit()
+        conn.close()
     
-    data = {}
-    
-    for row in rows:
-        id = row[0]
-        channel = row[1]
-        date = row[2]
-        messages = json.loads(row[3])
-        
-        if channel not in data:
-            data[channel] = {}
-        
-        if date not in data[channel]:
-            data[channel][date] = {
-                'messages': []
-            }
-        
-        data[channel][date]['messages'].extend(messages)
-    
-    return data

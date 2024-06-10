@@ -1,7 +1,7 @@
 import asyncio
 
-from modules.database import create_table
-from modules.telegram import save_telegram_messages
+from modules.db import create_table
+from modules.telegram.telegram import save_telegram_messages
 
 
 def main():
