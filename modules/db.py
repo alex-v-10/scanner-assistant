@@ -1,7 +1,8 @@
 import sqlite3
+from .const import DATABASE
 
 def create_table():
-    conn = sqlite3.connect('data.db')
+    conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS telegram_messages (

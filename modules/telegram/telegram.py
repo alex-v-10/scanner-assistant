@@ -4,17 +4,15 @@ import os
 from dotenv import load_dotenv
 from telethon.sync import TelegramClient
 from ..utils import split_prompt, delete_folder, delete_file
-from ..const import NEW_CHANNEL_LAST_MESSAGES_AMOUNT, SPLIT_LENGTH_FOR_PROMPT, KEY_WORDS
-from .db import write_new_messages_to_db, get_last_message_ids, update_last_message_ids
+from ..const import NEW_CHANNEL_LAST_MESSAGES_AMOUNT, SPLIT_LENGTH_FOR_PROMPT, KEY_WORDS, DATABASE
+from .db import write_new_messages_to_db, get_last_message_ids, update_last_message_ids, get_messages_by_date
 
 load_dotenv()
 api_id = os.getenv('TELEGRAM_API_ID')
 api_hash = os.getenv('TELEGRAM_API_HASH')
 phone_number = os.getenv('TELEGRAM_PHONE_NUMBER')
-
 with open('projects.json', 'r') as f:
     projects = json.load(f)
-
 client = TelegramClient('session_name', api_id, api_hash)
 
 async def get_all_new_messages(last_message_ids):
@@ -31,9 +29,9 @@ async def get_all_new_messages(last_message_ids):
                 'project': project['project'],
                 'messages': []
             }
-            isFirst = True
             min_id = int(last_message_ids.get(channel, 0))
             limit = None if min_id else NEW_CHANNEL_LAST_MESSAGES_AMOUNT
+            isFirst = True
             async for message in client.iter_messages(channel_entity, min_id=min_id, limit=limit):
                 if isFirst:
                     last_message_ids[channel] = message.id
@@ -64,13 +62,10 @@ def save_messages_to_json(all_new_messages):
 
 async def save_telegram_messages():
     await client.start(phone_number)
-    
     if not os.path.exists(f'data'):
         os.makedirs(f'data')
-    
     last_message_ids = get_last_message_ids()
     all_new_messages = await get_all_new_messages(last_message_ids)
-    
     write_new_messages_to_db(all_new_messages)
     update_last_message_ids(last_message_ids)
     save_messages_to_json(all_new_messages)

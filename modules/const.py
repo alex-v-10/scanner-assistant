@@ -23,3 +23,4 @@ KEY_WORDS = {
         'event',
     ],
 }
+DATABASE = 'data.db'
