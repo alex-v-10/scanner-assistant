@@ -1,9 +1,10 @@
 .vscode/
 venv/
 .env
-session_name.session
+telegram.session
 data/
 __pycache__/
 *.db
 some_code.py
 projects.json
+chromedriver.exe

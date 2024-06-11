@@ -13,7 +13,10 @@ api_hash = os.getenv('TELEGRAM_API_HASH')
 phone_number = os.getenv('TELEGRAM_PHONE_NUMBER')
 with open('projects.json', 'r') as f:
     projects = json.load(f)
-client = TelegramClient('session_name', api_id, api_hash)
+client = TelegramClient('telegram', api_id, api_hash)
+
+async def start_telegram():
+    await client.start(phone_number)
 
 async def get_all_new_messages(last_message_ids):
     all_new_messages = []
@@ -47,6 +50,7 @@ async def get_all_new_messages(last_message_ids):
   
 def save_messages_to_json(all_new_messages):
     updated_channels=[]
+    delete_folder(f'data/json_messages')
     if not os.path.exists(f'data/json_messages'):
         os.makedirs(f'data/json_messages')
     for new_messages_of_channel in all_new_messages:
@@ -55,13 +59,8 @@ def save_messages_to_json(all_new_messages):
         with open(f'data/json_messages/{channel}({project_name}).json', 'w', encoding='utf-8') as f:
             json.dump(new_messages_of_channel, f, ensure_ascii=False, indent=4)
         updated_channels.append(channel)
-    for project in projects:
-        for channel in project['telegram_channels']:
-            if channel not in updated_channels:
-                delete_file(f'data/json_messages/{channel}({project['project']}).json')
 
 async def save_telegram_messages():
-    await client.start(phone_number)
     if not os.path.exists(f'data'):
         os.makedirs(f'data')
     last_message_ids = get_last_message_ids()
@@ -69,3 +68,5 @@ async def save_telegram_messages():
     write_new_messages_to_db(all_new_messages)
     update_last_message_ids(last_message_ids)
     save_messages_to_json(all_new_messages)
+    # messages_by_date = get_messages_by_date('2024-06-10')
+    # save_messages_to_json(messages_by_date)
