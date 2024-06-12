@@ -52,20 +52,27 @@ def write_new_messages_to_db(all_new_messages):
             conn.commit()
             conn.close()
 
-def get_messages_by_date(date):
+def get_messages_by_date_and_channel(date, channel=''):
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
-    cursor.execute('''
-        SELECT channel, project, messages 
-        FROM telegram_messages
-        WHERE date=?
-    ''', (date,))
+    if channel:
+        cursor.execute('''
+            SELECT channel, project, messages 
+            FROM telegram_messages
+            WHERE date=? AND channel=?
+        ''', (date, channel))
+    else:
+        cursor.execute('''
+            SELECT channel, project, messages 
+            FROM telegram_messages
+            WHERE date=?
+        ''', (date,))
     rows = cursor.fetchall()
     conn.close()
     result = []
     for row in rows:
         channel, project, messages_json = row
-        messages = json.loads(messages_json)  # Convert JSON string back to list of dicts
+        messages = json.loads(messages_json)
         result.append({
             "channel": channel,
             "project": project,

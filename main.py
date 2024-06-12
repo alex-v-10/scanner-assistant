@@ -1,9 +1,11 @@
 import asyncio
+import traceback
 
 from modules.db import create_table
 from modules.telegram.telegram import save_telegram_messages, start_telegram
 from modules.browser.browser import browse
-from modules.chatbot.chatbot import test
+from modules.chatbot.chatbot import process_messages_with_chatbot
+from modules.chatbot.db import clean_chatbot_answers
 
 
 async def shutdown(loop, signal=None):
@@ -26,7 +28,7 @@ def main():
             print("")
             print("Press 1 to save new Telegram messages to the database.")
             print("Press 2 to test the browser.")
-            print("Press 3 to test chatbot.")
+            print("Press 3 to analyze messages with chatbot.")
             print("Press 4 to exit the program.") 
             choice = input("Enter your choice: ")
             if choice == '1':
@@ -35,15 +37,16 @@ def main():
                     await save_telegram_messages()
                     print("Messages saved successfully.")
                 except Exception as e:
+                    traceback.print_exc() 
                     print(f"An error occurred: {e}")
             elif choice == '2':
                 print("Open browser")
                 browse()
                 print("Close browser")
             elif choice == '3':
-                print("Start")
-                test()
-                print("Finish")
+                date_channel = input("Input YYYY-MM-DD or YYYY-MM-DD @channel_name: ")
+                process_messages_with_chatbot(date_channel)
+                # clean_chatbot_answers()
             elif choice == '4':
                 print("Exiting the program.")
                 await shutdown(loop)
@@ -56,6 +59,7 @@ def main():
         print("\nProgram interrupted. Exiting...")
         loop.run_until_complete(shutdown(loop))
     except Exception as e:
+        traceback.print_exc() 
         print(f"An unexpected error occurred: {e}")
         loop.run_until_complete(shutdown(loop))
     finally:

@@ -12,7 +12,7 @@ def create_table():
             project TEXT,
             messages TEXT,
             messages_count TEXT,
-            chatbot_analytics TEXT
+            chatbot_answer TEXT
         )
     ''')
     cursor.execute('''

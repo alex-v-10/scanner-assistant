@@ -3,9 +3,11 @@ from selenium.webdriver.chrome.options import Options
 import os
 import time
 import pickle
+    
+chrome_profile_dir = os.path.abspath('browser/chrome_profile')
 
-profile_path = os.path.join(os.path.dirname(__file__), 'browser', 'chrome_profile')
-os.makedirs(profile_path, exist_ok=True)
+if not os.path.exists(chrome_profile_dir):
+    os.makedirs(chrome_profile_dir)
 
 def save_cookies(driver, filepath):
     with open(filepath, 'wb') as file:
@@ -19,7 +21,7 @@ def load_cookies(driver, filepath):
 
 def manual_login_and_save_cookies():
     options = Options()
-    options.add_argument(f"user-data-dir={profile_path}")
+    options.add_argument(f"user-data-dir={chrome_profile_dir}")
     driver = webdriver.Chrome(options=options)
     driver.get('https://groq.com')
     print("Please log in manually and then press Enter here...")
@@ -29,7 +31,7 @@ def manual_login_and_save_cookies():
 
 def automated_interaction():
     options = Options()
-    options.add_argument(f"user-data-dir={profile_path}")
+    options.add_argument(f"user-data-dir={chrome_profile_dir}")
     driver = webdriver.Chrome(options=options)
     driver.get('https://groq.com')
     try:

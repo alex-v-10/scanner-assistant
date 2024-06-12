@@ -43,7 +43,7 @@ def find_dict_by_key_value(dicts, key, value):
 #         })
 #     return file_data
   
-def split_prompt(text, split_length, questions):
+def split_prompt(text, split_length, description, questions):
     if split_length <= 0:
         raise ValueError("Max length must be greater than 0.")
     num_parts = -(-len(text) // split_length)
@@ -53,6 +53,8 @@ def split_prompt(text, split_length, questions):
         end = min((i + 1) * split_length, len(text))
         content = text[start:end]
         content += '\n[END OF LOG]'
+        content += f'\n{description}'
+        content += f'\n QUESTIONS FOR CHATBOT: '
         content += f'\n{questions}'
         file_data.append({
             'prompt': content
