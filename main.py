@@ -1,9 +1,9 @@
 import asyncio
-import sys
 
 from modules.db import create_table
 from modules.telegram.telegram import save_telegram_messages, start_telegram
 from modules.browser.browser import browse
+from modules.chatbot.chatbot import test
 
 
 async def shutdown(loop, signal=None):
@@ -26,7 +26,8 @@ def main():
             print("")
             print("Press 1 to save new Telegram messages to the database.")
             print("Press 2 to test the browser.")
-            print("Press 3 to exit the program.")       
+            print("Press 3 to test chatbot.")
+            print("Press 4 to exit the program.") 
             choice = input("Enter your choice: ")
             if choice == '1':
                 try:
@@ -40,6 +41,10 @@ def main():
                 browse()
                 print("Close browser")
             elif choice == '3':
+                print("Start")
+                test()
+                print("Finish")
+            elif choice == '4':
                 print("Exiting the program.")
                 await shutdown(loop)
                 break

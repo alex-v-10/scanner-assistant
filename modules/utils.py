@@ -18,8 +18,32 @@ def delete_file(file_path):
             print(f"Permission denied: cannot delete {file_path}")
         except Exception as e:
             print(f"Error occurred while deleting {file_path}: {e}")
+
+def find_dict_by_key_value(dicts, key, value):
+    return next((d for d in dicts if d.get(key) == value), None)
         
-def split_prompt(text, split_length):
+# def split_prompt(text, split_length, questions):
+#     if split_length <= 0:
+#         raise ValueError("Max length must be greater than 0.")
+#     num_parts = -(-len(text) // split_length)
+#     file_data = []
+#     for i in range(num_parts):
+#         start = i * split_length
+#         end = min((i + 1) * split_length, len(text))
+#         if i == num_parts - 1:
+#             content = f'[START PART {i + 1}/{num_parts}]\n' + text[start:end] + f'\n[END PART {i + 1}/{num_parts}]'
+#             content += '\nALL PARTS SENT. Now you can continue processing the request.'
+#             content += f'\n{questions}'
+#         else:
+#             content = f'Do not answer yet. This is just another part of the text I want to send you. Just receive and acknowledge as "Part {i + 1}/{num_parts} received" and wait for the next part.\n[START PART {i + 1}/{num_parts}]\n' + text[start:end] + f'\n[END PART {i + 1}/{num_parts}]'
+#             content += f'\nRemember not answering yet. Just acknowledge you received this part with the message "Part {i + 1}/{num_parts} received" and wait for the next part.'
+#         file_data.append({
+#             'name': f'split_{str(i + 1).zfill(3)}_of_{str(num_parts).zfill(3)}.txt',
+#             'content': content
+#         })
+#     return file_data
+  
+def split_prompt(text, split_length, questions):
     if split_length <= 0:
         raise ValueError("Max length must be greater than 0.")
     num_parts = -(-len(text) // split_length)
@@ -27,14 +51,10 @@ def split_prompt(text, split_length):
     for i in range(num_parts):
         start = i * split_length
         end = min((i + 1) * split_length, len(text))
-        if i == num_parts - 1:
-            content = f'[START PART {i + 1}/{num_parts}]\n' + text[start:end] + f'\n[END PART {i + 1}/{num_parts}]'
-            content += '\nALL PARTS SENT. Now you can continue processing the request.'
-        else:
-            content = f'Do not answer yet. This is just another part of the text I want to send you. Just receive and acknowledge as "Part {i + 1}/{num_parts} received" and wait for the next part.\n[START PART {i + 1}/{num_parts}]\n' + text[start:end] + f'\n[END PART {i + 1}/{num_parts}]'
-            content += f'\nRemember not answering yet. Just acknowledge you received this part with the message "Part {i + 1}/{num_parts} received" and wait for the next part.'
+        content = text[start:end]
+        content += '\n[END OF LOG]'
+        content += f'\n{questions}'
         file_data.append({
-            'name': f'split_{str(i + 1).zfill(3)}_of_{str(num_parts).zfill(3)}.txt',
-            'content': content
+            'prompt': content
         })
     return file_data

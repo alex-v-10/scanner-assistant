@@ -11,7 +11,8 @@ def create_table():
             channel TEXT,
             project TEXT,
             messages TEXT,
-            messages_count TEXT
+            messages_count TEXT,
+            chatbot_analytics TEXT
         )
     ''')
     cursor.execute('''
