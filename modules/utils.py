@@ -54,7 +54,7 @@ def split_prompt(text, split_length, description, questions):
         content = text[start:end]
         content += '\n[END OF LOG]'
         content += f'\n{description}'
-        content += f'\n QUESTIONS FOR CHATBOT: '
+        content += f'\n QUESTIONS FOR YOU: '
         content += f'\n{questions}'
         file_data.append({
             'prompt': content
