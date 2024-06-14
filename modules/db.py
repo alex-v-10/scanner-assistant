@@ -15,7 +15,8 @@ def create_table():
                 messages TEXT,
                 messages_count TEXT,
                 chatbot_answer TEXT,
-                chatbot_filter TEXT
+                answer_search TEXT,
+                messages_search TEXT
             )
         ''')
         cursor.execute('''
@@ -31,4 +32,3 @@ def create_table():
     finally:
         cursor.close()
         conn.close()
-    

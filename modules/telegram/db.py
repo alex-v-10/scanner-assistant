@@ -3,7 +3,7 @@ import sqlite3
 import traceback
 from datetime import datetime
 
-from ..chatbot.chatbot import complete_complex_chat
+from ..chatbot.chatbot import complete_complex_chat, get_groq_client
 from ..const import (DATABASE, KEY_WORDS, MAX_MESSAGES_FOR_CHATBOT,
                      NEW_CHANNEL_LAST_MESSAGES_AMOUNT, SPLIT_LENGTH_FOR_PROMPT, MAX_PARTS_FOR_CHATBOT)
 from ..utils import split_prompt
@@ -134,6 +134,7 @@ def get_messages_by_date_and_channel(date, channel=''):
 def update_chatbot_answers(messages_by_date, date):
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
+    groq_client = get_groq_client()
     try:
         for messages_of_channel in messages_by_date:
             channel = messages_of_channel['channel']
@@ -143,7 +144,7 @@ def update_chatbot_answers(messages_by_date, date):
                 if splitted_length > MAX_PARTS_FOR_CHATBOT:
                     print(f'{date} {channel} ignored. Too many data. {splitted_length} parts.')
                     continue
-                answers = complete_complex_chat(splitted_data)
+                answers = complete_complex_chat(splitted_data, groq_client)
                 answers_str = '\n\n'.join(answers)
                 cursor.execute("UPDATE telegram_messages SET chatbot_answer=? WHERE date=? AND channel=?", (answers_str, date, channel))
                 conn.commit()
@@ -155,12 +156,13 @@ def update_chatbot_answers(messages_by_date, date):
     finally:
         cursor.close()
         conn.close()
+        groq_client.close()
     
 def clean_chatbot_answers():
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
     try:
-        cursor.execute("UPDATE telegram_messages SET chatbot_answer = '', chatbot_filter = ''")
+        cursor.execute("UPDATE telegram_messages SET chatbot_answer = ''")
         conn.commit()
     except Exception as e:
         traceback.print_exc() 
@@ -195,7 +197,7 @@ def get_chatbot_answers_by_date(date):
         conn.close()
         return result
   
-def update_answer_search(date, answers, keywords):
+def update_answer_search(answers, date):
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
     try:
@@ -204,23 +206,23 @@ def update_answer_search(date, answers, keywords):
             chatbot_answer = answer['chatbot_answer']
             chatbot_answer_lower = chatbot_answer.lower()
             updates = []
-            for keyword in keywords['upper']:
+            for keyword in KEY_WORDS['upper']:
                 if keyword in chatbot_answer:
                     current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                     update_text = f"{current_time} Found {keyword}"
                     updates.append(update_text)
-            for keyword in keywords['lower']:
+            for keyword in KEY_WORDS['lower']:
                 if keyword in chatbot_answer_lower:
                     current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
                     update_text = f"{current_time} Found {keyword}"
                     updates.append(update_text)
             if updates:
-                cursor.execute("SELECT chatbot_filter FROM telegram_messages WHERE date=? AND channel=?", (date, channel))
+                cursor.execute("SELECT answer_search FROM telegram_messages WHERE date=? AND channel=?", (date, channel))
                 row = cursor.fetchone()
                 existing_filter = row[0] if row and row[0] else ""
                 updated_filter = existing_filter + "\n" + "\n".join(updates) if existing_filter else "\n".join(updates)
-                cursor.execute("UPDATE telegram_messages SET chatbot_filter=? WHERE date=? AND channel=?", (updated_filter, date, channel))
-            conn.commit()
+                cursor.execute("UPDATE telegram_messages SET answer_search=? WHERE date=? AND channel=?", (updated_filter, date, channel))
+        conn.commit()
     except Exception as e:
         traceback.print_exc() 
         print(f"An unexpected error occurred: {e}")
@@ -228,11 +230,11 @@ def update_answer_search(date, answers, keywords):
         cursor.close()
         conn.close()
         
-def clean_answer_search():
+def clean_search():
   conn = sqlite3.connect(DATABASE)
   cursor = conn.cursor()
   try:
-      cursor.execute("UPDATE telegram_messages SET chatbot_filter = ''")
+      cursor.execute("UPDATE telegram_messages SET answer_search = '', messages_search = ''")
       conn.commit()
   except Exception as e:
       traceback.print_exc() 
@@ -240,4 +242,33 @@ def clean_answer_search():
   finally:
       cursor.close()
       conn.close()
+      
+def update_messages_search(messages_by_date, date):
+    conn = sqlite3.connect(DATABASE)
+    cursor = conn.cursor()
+    try:
+        for messages_of_channel in messages_by_date:
+            channel = messages_of_channel['channel']
+            found_messages = []
+            for message in messages_of_channel['messages']:
+                if message['message'] is None:
+                    continue
+                for word in KEY_WORDS['lower']:
+                    if word in message['message'].lower():
+                        found_messages.append(message)
+                        break
+            if found_messages:
+                messages_to_write = json.dumps(found_messages)
+                cursor.execute('''
+                    UPDATE telegram_messages
+                    SET messages_search = ?
+                    WHERE date = ? AND channel = ?
+                ''', (messages_to_write, date, channel)) 
+        conn.commit()
+    except Exception as e:
+        traceback.print_exc()
+        print(f"An unexpected error occurred: {e}")
+    finally:
+        cursor.close()
+        conn.close()
     

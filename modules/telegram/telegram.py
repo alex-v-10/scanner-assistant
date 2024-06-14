@@ -12,7 +12,7 @@ from ..utils import delete_folder, split_prompt
 from .db import (get_chatbot_answers_by_date, get_last_message_ids,
                  get_messages_by_date_and_channel, update_chatbot_answers,
                  update_answer_search, update_last_message_ids,
-                 write_new_messages_to_db)
+                 write_new_messages_to_db, update_messages_search)
 
 load_dotenv()
 api_id = os.getenv('TELEGRAM_API_ID')
@@ -20,8 +20,6 @@ api_hash = os.getenv('TELEGRAM_API_HASH')
 phone_number = os.getenv('TELEGRAM_PHONE_NUMBER')
 with open('projects.json', 'r') as f:
     projects = json.load(f)
-
-# client = TelegramClient('telegram', api_id, api_hash)
 
 async def start_telegram():
     client = TelegramClient('telegram', api_id, api_hash)
@@ -39,7 +37,7 @@ async def get_all_new_messages(last_message_ids):
                 except ValueError as e:
                     print(f'{e}. Channel does not exist.')
                     continue
-                new_messages_of_channel = {
+                messages_of_channel = {
                     'channel': channel,
                     'project': project['project'],
                     'messages': []
@@ -51,12 +49,12 @@ async def get_all_new_messages(last_message_ids):
                     if isFirst:
                         last_message_ids[channel] = message.id
                         isFirst = False
-                    new_messages_of_channel['messages'].insert(0, {
+                    messages_of_channel['messages'].insert(0, {
                         'date': message.date.isoformat(),
                         'message': message.text,
                     })
-                if new_messages_of_channel['messages']:
-                    all_new_messages.append(new_messages_of_channel)
+                if messages_of_channel['messages']:
+                    all_new_messages.append(messages_of_channel)
                     print(f'{channel} messages added')
     except Exception as e:
         traceback.print_exc() 
@@ -70,11 +68,11 @@ def save_messages_to_json(all_new_messages):
     delete_folder(f'data/json_messages')
     if not os.path.exists(f'data/json_messages'):
         os.makedirs(f'data/json_messages')
-    for new_messages_of_channel in all_new_messages:
-        channel = new_messages_of_channel['channel']
-        project_name = new_messages_of_channel['project']
+    for messages_of_channel in all_new_messages:
+        channel = messages_of_channel['channel']
+        project_name = messages_of_channel['project']
         with open(f'data/json_messages/{channel}({project_name}).json', 'w', encoding='utf-8') as f:
-            json.dump(new_messages_of_channel, f, ensure_ascii=False, indent=4)
+            json.dump(messages_of_channel, f, ensure_ascii=False, indent=4)
         updated_channels.append(channel)
 
 async def save_telegram_messages():
@@ -89,11 +87,11 @@ async def save_telegram_messages():
 def process_messages_with_chatbot(date_channel):
     date_channel_parts = date_channel.split(' ', 1)
     date = date_channel_parts[0]
-    Input_channel = ''
+    input_channel = ''
     if len(date_channel_parts) > 1:
-        Input_channel = date_channel_parts[1]
+        input_channel = date_channel_parts[1]
     
-    messages_by_date = get_messages_by_date_and_channel(date, Input_channel)
+    messages_by_date = get_messages_by_date_and_channel(date, input_channel)
     if not messages_by_date:
         print('No messages found.')
         return
@@ -102,10 +100,16 @@ def process_messages_with_chatbot(date_channel):
             del message['date']
     update_chatbot_answers(messages_by_date, date)
             
-def filter_chatbot_answers(date):
+def search_in_answers(date):
     answers_by_date = get_chatbot_answers_by_date(date)
     if not answers_by_date:
         print('No chatbot answers found.')
         return
-    update_answer_search(date, answers_by_date, KEY_WORDS)
-            
+    update_answer_search(answers_by_date, date)
+    
+def search_in_messages(date):
+    messages_by_date = get_messages_by_date_and_channel(date)
+    if not messages_by_date:
+        print('No messages found.')
+        return
+    update_messages_search(messages_by_date, date)

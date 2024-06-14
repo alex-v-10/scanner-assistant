@@ -7,14 +7,13 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-# client = Groq(
-#     api_key=os.getenv('GROQ_API_KEY'),
-# )
-
-def complete_complex_chat(splitted_data):
+def get_groq_client():
     client = Groq(
         api_key=os.getenv('GROQ_API_KEY'),
     )
+    return client
+
+def complete_complex_chat(splitted_data, client):
     answers = []
     count = 1
     try:
@@ -33,8 +32,6 @@ def complete_complex_chat(splitted_data):
     except Exception as e:
         traceback.print_exc() 
         print(f"An unexpected error occurred: {e}")
-    finally:
-        client.close()
     return answers
        
     
