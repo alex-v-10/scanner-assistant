@@ -7,5 +7,6 @@ __pycache__/
 *.db
 some_code.py
 projects.json
+ignore.json
 chromedriver.exe
 browser/

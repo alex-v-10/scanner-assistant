@@ -1,10 +1,12 @@
 import asyncio
 import traceback
 
-from modules.db import create_table
-from modules.telegram.telegram import save_telegram_messages, start_telegram, process_messages_with_chatbot, search_in_answers, search_in_messages
 from modules.browser.browser import browse
-from modules.telegram.db import clean_chatbot_answers, clean_search
+from modules.db import create_table
+from modules.telegram.telegram import (process_messages_with_chatbot,
+                                       save_telegram_messages,
+                                       search_in_answers, search_in_messages)
+from modules.telegram.utils import clean_chatbot_answers, clean_search
 
 
 async def shutdown(loop, signal=None):
@@ -23,18 +25,12 @@ async def main_async():
         print("")
         print("Press 1 to save new Telegram messages to the database.")
         print("Press 2 to process Telegram messages with chatbot.")
-        print("Press 3 Search keywords in Telegram messages and chatbot answers")
+        print("Press 3 to search keywords in Telegram messages and chatbot answers")
         print("Press 4 to test the browser.")
         print("Press 5 to exit the program.") 
         choice = input("Enter your choice: ")
         if choice == '1':
-            try:
-                print("Saving new telegram messages to the database...")
-                await save_telegram_messages()
-                print("Messages saved successfully.")
-            except Exception as e:
-                traceback.print_exc() 
-                print(f"An error occurred: {e}")
+            await save_telegram_messages()
         elif choice == '2':
             date_channel = input("Input YYYY-MM-DD or YYYY-MM-DD @channel_name: ")
             process_messages_with_chatbot(date_channel)
