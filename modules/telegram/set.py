@@ -43,14 +43,12 @@ def set_new_telegram_messages(channel, project, new_messages, cursor):
                 VALUES (?, ?, ?, ?, ?)
             ''', (date, channel, project, json.dumps(messages), len(messages)))
             
-def set_chatbot_answer(date, channel, answer, conn, cursor):
+def set_chatbot_answer(date, channel, answer, cursor):
     cursor.execute('''
         UPDATE telegram_messages
         SET chatbot_answer=? 
         WHERE date=? AND channel=?
     ''', (answer, date, channel))
-    conn.commit()
-    print(f'"{channel}",')
     
 def set_answer_search(date, channel, search_results, cursor):
     cursor.execute("SELECT answer_search FROM telegram_messages WHERE date=? AND channel=?", (date, channel))
@@ -65,4 +63,21 @@ def set_messages_search(date, channel, found_messages, cursor):
         UPDATE telegram_messages
         SET messages_search = ?
         WHERE date = ? AND channel = ?
-    ''', (messages_to_write, date, channel)) 
+    ''', (messages_to_write, date, channel))
+    
+def add_channel_to_ignore_list(date, channel, cursor):
+    cursor.execute('SELECT telegram_channels FROM ignore_list WHERE date = ?', (date,))
+    row = cursor.fetchone()
+    if row:
+        existing_channels = row[0]
+        updated_channels = existing_channels + ',' + channel
+        cursor.execute('UPDATE ignore_list SET telegram_channels = ? WHERE date = ?', (updated_channels, date))
+    else:
+        cursor.execute('INSERT INTO ignore_list (date, telegram_channels) VALUES (?, ?)', (date, channel))
+        
+def delete_ignore_list_by_date(date, conn, cursor):
+    cursor.execute('''
+        DELETE FROM ignore_list
+        WHERE date = ?
+    ''', (date,))
+    conn.commit()

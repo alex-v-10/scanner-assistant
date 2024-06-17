@@ -53,7 +53,7 @@ def split_prompt(text, split_length, description, questions):
         start = i * split_length
         end = min((i + 1) * split_length, len(text))
         content = text[start:end]
-        content += f'\n [END OF LOG] \n{description}\n QUESTIONS FOR YOU: \n{questions}'
+        content += f'\n [END OF LOG] \n{description}\n ANSWER QUESTIONS: \n{questions}'
         file_data.append({
             'prompt': content
         })

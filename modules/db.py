@@ -25,6 +25,12 @@ def create_table():
                 min_id TEXT
             )
         ''')
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS ignore_list (
+                date TEXT PRIMARY KEY,
+                telegram_channels TEXT
+            )
+        ''')
         conn.commit()
     except Exception as e:
         traceback.print_exc() 

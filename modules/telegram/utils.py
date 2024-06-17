@@ -16,6 +16,7 @@ def clean_chatbot_answers():
     cursor = conn.cursor()
     try:
         cursor.execute("UPDATE telegram_messages SET chatbot_answer = ''")
+        cursor.execute("UPDATE ignore_list SET date = '', telegram_channels=''")
         conn.commit()
     except Exception as e:
         traceback.print_exc() 
@@ -36,3 +37,13 @@ def clean_search():
   finally:
       cursor.close()
       conn.close()
+      
+async def search_channel_ids(telegram_client):
+    dialogs = await telegram_client.get_dialogs()
+    channels = []
+    for dialog in dialogs:
+        entity = dialog.entity
+        if hasattr(entity, 'broadcast') and entity.broadcast:  # Check if it's a channel
+            print(f'Channel Name: {entity.title}, Channel ID: {entity.id}')
+            channels.append(entity)
+    return channels

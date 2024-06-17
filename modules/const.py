@@ -1,7 +1,7 @@
-# DATABASE = 'data.db'
-DATABASE = 'test.db'
-NEW_CHANNEL_LAST_MESSAGES_AMOUNT = 100
-NEW_CHANNEL_LAST_MESSAGES_AMOUNT_SMALL = 5
+DATABASE = 'data.db'
+# DATABASE = 'test.db'
+NEW_CHANNEL_LIMIT = 100
+NEW_CHANNEL_LIMIT_SMALL = 5
 MESSAGES_BATCH_LIMIT = 1000
 SPLIT_LENGTH_FOR_PROMPT = 18000
 MAX_MESSAGES_FOR_CHATBOT = 500
@@ -18,8 +18,8 @@ KEY_WORDS = {
 CHATBOT = {
     'chatbot_description': 'This is chat of a crypto project.',
     'chatbot_questions': [
-        'Are there releases, launches or listings planned? If yes what is the date?',
-        'What events are happening or planned to happen soon? If yes what is the date?',
-        'Are there any new features planned?',
+        'Are there any releases, launches or listings planned? If yes, what date?',
+        'What events are happening or planned in the near future?” If yes, what date?',
+        'Are there any new features planned?'
     ]
 }
