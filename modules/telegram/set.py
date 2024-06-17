@@ -1,11 +1,11 @@
 import json
 
-def set_last_message_id(channel, last_message_id, cursor):
+def set_telegram_min_id(channel, min_id, cursor):
     cursor.execute('''
-        INSERT INTO telegram_last_ids (channel, last_id)
+        INSERT INTO telegram_min_ids (channel, min_id)
         VALUES (?, ?)
-        ON CONFLICT(channel) DO UPDATE SET last_id=excluded.last_id
-    ''', (channel, last_message_id))
+        ON CONFLICT(channel) DO UPDATE SET min_id=excluded.min_id
+    ''', (channel, min_id))
     
 def set_new_telegram_messages(channel, project, new_messages, cursor):
     messages_by_date = {}  

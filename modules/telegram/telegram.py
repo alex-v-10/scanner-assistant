@@ -8,7 +8,7 @@ from telethon.sync import TelegramClient
 
 from ..const import (KEY_WORDS, DATABASE)
 from ..utils import delete_folder, search_keyword_in_text
-from .get import get_new_telegram_messages, get_messages_db, get_chatbot_answer_db, get_chatbot_answer
+from .get import get_new_telegram_messages, get_messages_db, get_chatbot_answer_db, get_chatbot_answer, get_telegram_min_id
 from .set import set_new_telegram_messages, set_chatbot_answer, set_answer_search, set_messages_search
 from .utils import save_messages_to_json
 from ..chatbot.chatbot import get_groq_client
@@ -17,7 +17,7 @@ load_dotenv()
 api_id = os.getenv('TELEGRAM_API_ID')
 api_hash = os.getenv('TELEGRAM_API_HASH')
 phone_number = os.getenv('TELEGRAM_PHONE_NUMBER')
-with open('projects.json', 'r') as f:
+with open('projects_test.json', 'r') as f:
     projects = json.load(f)
 with open('ignore.json', 'r') as f:
     ignore_list = json.load(f)
@@ -28,13 +28,6 @@ async def start_telegram():
     return client
 
 async def save_telegram_messages():
-    #
-    if not os.path.exists(f'data'):
-        os.makedirs(f'data')
-    delete_folder(f'data/json_messages')
-    if not os.path.exists(f'data/json_messages'):
-        os.makedirs(f'data/json_messages')
-    #
     telegram_client = await start_telegram()
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
@@ -42,12 +35,21 @@ async def save_telegram_messages():
         for project in projects:
             for channel in project['telegram_channels']:
                 try:
-                    new_messages = await get_new_telegram_messages(channel, telegram_client, cursor)
-                    if new_messages:
-                        set_new_telegram_messages(channel, project['project'], new_messages, cursor)
-                        save_messages_to_json(channel, project['project'], new_messages)
-                        conn.commit()
-                        print(f'{channel} messages saved.')
+                    channel_entity = await telegram_client.get_entity(channel)
+                    async for message in telegram_client.iter_messages(channel_entity, limit=1):
+                        newest_message_id = message.id
+                    while True:
+                        min_id = int(get_telegram_min_id(channel, cursor))
+                        if min_id < newest_message_id:
+                            new_messages = await get_new_telegram_messages(channel, project, channel_entity, min_id, telegram_client, cursor)
+                            if new_messages:
+                                set_new_telegram_messages(channel, project['project'], new_messages, cursor)
+                                conn.commit()
+                                print(f'{channel} batch of messages saved.')
+                            else:
+                                break
+                        else:
+                            break
                 except Exception as e:
                     traceback.print_exc() 
                     print(f"An unexpected error occurred: {e}")

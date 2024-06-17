@@ -20,9 +20,9 @@ def create_table():
             )
         ''')
         cursor.execute('''
-            CREATE TABLE IF NOT EXISTS telegram_last_ids (
+            CREATE TABLE IF NOT EXISTS telegram_min_ids (
                 channel TEXT PRIMARY KEY,
-                last_id TEXT
+                min_id TEXT
             )
         ''')
         conn.commit()
