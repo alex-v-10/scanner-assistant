@@ -43,7 +43,7 @@ async def search_channel_ids(telegram_client):
     channels = []
     for dialog in dialogs:
         entity = dialog.entity
-        if hasattr(entity, 'broadcast') and entity.broadcast:  # Check if it's a channel
+        if hasattr(entity, 'broadcast') and entity.broadcast:
             print(f'Channel Name: {entity.title}, Channel ID: {entity.id}')
             channels.append(entity)
     return channels

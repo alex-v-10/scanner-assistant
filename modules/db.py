@@ -28,7 +28,8 @@ def create_table():
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS ignore_list (
                 date TEXT PRIMARY KEY,
-                telegram_channels TEXT
+                telegram_channels TEXT,
+                youtube TEXT
             )
         ''')
         cursor.execute('''

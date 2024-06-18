@@ -3,26 +3,23 @@ import os
 import sqlite3
 import traceback
 
-from dotenv import load_dotenv
 from telethon.sync import TelegramClient
 
 from ..chatbot.chatbot import get_groq_client
 from ..const import DATABASE, KEY_WORDS
-from ..utils import delete_folder, search_keyword_in_text
+from ..utils import delete_folder, search_keyword_in_text, get_current_date
 from .get import (get_chatbot_answer, get_chatbot_answer_db,
                   get_chatbot_ignore_list, get_messages_db,
                   get_new_telegram_messages, get_telegram_min_id)
-from .set import (add_channel_to_ignore_list, delete_ignore_list_by_date,
+from .set import (add_channel_to_ignore_list, delete_telegram_ignore_list,
                   set_answer_search, set_chatbot_answer, set_messages_search,
                   set_new_telegram_messages)
 from .utils import search_channel_ids, save_messages_to_json
 
-load_dotenv()
-api_id = os.getenv('TELEGRAM_API_ID')
-api_hash = os.getenv('TELEGRAM_API_HASH')
-phone_number = os.getenv('TELEGRAM_PHONE_NUMBER')
-
 async def start_telegram():
+    api_id = os.getenv('TELEGRAM_API_ID')
+    api_hash = os.getenv('TELEGRAM_API_HASH')
+    phone_number = os.getenv('TELEGRAM_PHONE_NUMBER')
     client = TelegramClient('telegram', api_id, api_hash)
     await client.start(phone_number)
     return client
@@ -100,7 +97,7 @@ def process_messages_with_chatbot(date_channel, projects):
                 choice = input('Do you want to continue (y) or start from beginning (n)? y/n: ')
                 if choice == 'n':
                     ignore_list = []
-                    delete_ignore_list_by_date(date, conn, cursor)
+                    delete_telegram_ignore_list(date, conn, cursor)
                 elif choice != 'y':
                     print('Skip')
                     return
@@ -110,7 +107,7 @@ def process_messages_with_chatbot(date_channel, projects):
                         print(f'{channel} in ignore list.')
                         continue
                     process_channel_messages_with_chatbot(date, channel, conn, cursor, groq_client)
-            delete_ignore_list_by_date(date, conn, cursor)
+            delete_telegram_ignore_list(date, conn, cursor)
     except Exception as e:
         traceback.print_exc() 
         print(f"An unexpected error occurred: {e}")

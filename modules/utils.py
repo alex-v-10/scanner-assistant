@@ -84,7 +84,27 @@ def search_keyword_in_text(text, keyword):
     search_result = f'Found {keyword}:\n{'\n'.join(contexts)}'
     return search_result
   
+def get_current_date():
+    return datetime.now().strftime('%Y-%m-%d')
+  
 def get_past_dates(number):
     current_date = datetime.now()
     past_week_dates = [(current_date - timedelta(days=i)).strftime('%Y-%m-%d') for i in range(number)]
     return past_week_dates
+  
+def get_start_end_of_day(date=None):
+    if date:
+        start_of_day = datetime.strptime(date, "%Y-%m-%d").replace(hour=0, minute=0, second=0, microsecond=0)
+    else:
+        start_of_day = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    end_of_day = start_of_day + timedelta(days=1)
+    return start_of_day.isoformat("T") + "Z", end_of_day.isoformat("T") + "Z"
+  
+def get_today_start():
+    start_of_day = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    return start_of_day.isoformat("T") + "Z"
+  
+def parse_date_string(date_string):
+    parsed_date = datetime.strptime(date_string, '%Y-%m-%dT%H:%M:%SZ').date()
+    formatted_date = parsed_date.strftime('%Y-%m-%d')
+    return formatted_date

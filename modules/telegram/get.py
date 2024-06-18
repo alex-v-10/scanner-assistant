@@ -97,7 +97,7 @@ def get_chatbot_answer_db(date, channel, cursor):
 def get_chatbot_ignore_list(date, cursor):
     cursor.execute('SELECT telegram_channels FROM ignore_list WHERE date = ?', (date,))
     row = cursor.fetchone()
-    if row:
+    if row and row[0]:
         return row[0].split(',')
     else:
         return []
