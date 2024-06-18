@@ -1,6 +1,8 @@
 import os
 import shutil
 
+from datetime import datetime, timedelta
+
 def delete_folder(folder_path):
     if os.path.exists(folder_path):
         try:
@@ -81,3 +83,8 @@ def search_keyword_in_text(text, keyword):
     contexts = extract_context(text, keyword)
     search_result = f'Found {keyword}:\n{'\n'.join(contexts)}'
     return search_result
+  
+def get_past_dates(number):
+    current_date = datetime.now()
+    past_week_dates = [(current_date - timedelta(days=i)).strftime('%Y-%m-%d') for i in range(number)]
+    return past_week_dates

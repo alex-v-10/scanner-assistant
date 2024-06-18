@@ -101,3 +101,20 @@ def get_chatbot_ignore_list(date, cursor):
         return row[0].split(',')
     else:
         return []
+      
+def get_messages_sum(date, project, cursor):
+    cursor.execute('''
+        SELECT SUM(CAST(messages_count AS INTEGER))
+        FROM telegram_messages
+        WHERE date = ? AND project = ?
+    ''', (date, project,))
+    result = cursor.fetchone()
+    return result[0] if result[0] is not None else 0
+  
+# def row_exists(date, project, cursor):
+#     cursor.execute('''
+#         SELECT 1 FROM telegram_messages
+#         WHERE date = ? AND project = ?
+#         LIMIT 1
+#     ''', (date, project))
+#     return cursor.fetchone() is not None

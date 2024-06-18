@@ -21,15 +21,13 @@ load_dotenv()
 api_id = os.getenv('TELEGRAM_API_ID')
 api_hash = os.getenv('TELEGRAM_API_HASH')
 phone_number = os.getenv('TELEGRAM_PHONE_NUMBER')
-with open('projects.json', 'r') as f:
-    projects = json.load(f)
 
 async def start_telegram():
     client = TelegramClient('telegram', api_id, api_hash)
     await client.start(phone_number)
     return client
 
-async def save_telegram_messages():
+async def save_telegram_messages(projects):
     telegram_client = await start_telegram()
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
@@ -83,7 +81,7 @@ def process_channel_messages_with_chatbot(date, channel, conn, cursor, groq_clie
         print(f"An unexpected error occurred: {e}")
         print(f"Unable to get chatbot answer for {channel}.")
 
-def process_messages_with_chatbot(date_channel):
+def process_messages_with_chatbot(date_channel, projects):
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
     groq_client = get_groq_client()
@@ -121,7 +119,7 @@ def process_messages_with_chatbot(date_channel):
         conn.close()
         groq_client.close()
 
-def search_in_answers(date):
+def search_in_answers(date, projects):
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
     try:
@@ -149,7 +147,7 @@ def search_in_answers(date):
         cursor.close()
         conn.close()
 
-def search_in_messages(date):
+def search_in_messages(date, projects):
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
     try:

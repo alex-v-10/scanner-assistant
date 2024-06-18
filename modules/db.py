@@ -31,6 +31,16 @@ def create_table():
                 telegram_channels TEXT
             )
         ''')
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS charts (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                date TEXT,
+                project TEXT,
+                telegram TEXT,
+                youtube TEXT,
+                UNIQUE(date, project)
+            )
+        ''')
         conn.commit()
     except Exception as e:
         traceback.print_exc() 
