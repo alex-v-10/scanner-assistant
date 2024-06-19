@@ -39,6 +39,7 @@ def create_table():
                 project TEXT,
                 telegram TEXT,
                 youtube TEXT,
+                youtube_approx TEXT,
                 UNIQUE(date, project)
             )
         ''')

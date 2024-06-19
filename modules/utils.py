@@ -1,7 +1,8 @@
 import os
 import shutil
 
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
+from dateutil import parser
 
 def delete_folder(folder_path):
     if os.path.exists(folder_path):
@@ -85,26 +86,22 @@ def search_keyword_in_text(text, keyword):
     return search_result
   
 def get_current_date():
-    return datetime.now().strftime('%Y-%m-%d')
+    return datetime.now(timezone.utc).strftime('%Y-%m-%d')
   
 def get_past_dates(number):
-    current_date = datetime.now()
+    current_date = datetime.now(timezone.utc)
     past_week_dates = [(current_date - timedelta(days=i)).strftime('%Y-%m-%d') for i in range(number)]
     return past_week_dates
-  
+      
 def get_start_end_of_day(date=None):
     if date:
-        start_of_day = datetime.strptime(date, "%Y-%m-%d").replace(hour=0, minute=0, second=0, microsecond=0)
+        start_of_day = datetime.strptime(date, "%Y-%m-%d").replace(hour=0, minute=0, second=0, microsecond=0, tzinfo=timezone.utc)
     else:
-        start_of_day = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+        start_of_day = datetime.now(timezone.utc).replace(hour=0, minute=0, second=0, microsecond=0)
     end_of_day = start_of_day + timedelta(days=1)
-    return start_of_day.isoformat("T") + "Z", end_of_day.isoformat("T") + "Z"
-  
-def get_today_start():
-    start_of_day = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-    return start_of_day.isoformat("T") + "Z"
+    return start_of_day.isoformat(), end_of_day.isoformat()
   
 def parse_date_string(date_string):
-    parsed_date = datetime.strptime(date_string, '%Y-%m-%dT%H:%M:%SZ').date()
+    parsed_date = datetime.strptime(date_string, '%Y-%m-%dT%H:%M:%S%z').date()
     formatted_date = parsed_date.strftime('%Y-%m-%d')
     return formatted_date

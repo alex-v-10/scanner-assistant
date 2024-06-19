@@ -1,6 +1,6 @@
 import json
 
-from datetime import datetime
+from datetime import datetime, timezone
 
 def set_telegram_min_id(channel, min_id, cursor):
     cursor.execute('''
@@ -56,7 +56,7 @@ def set_answer_search(date, channel, search_results, cursor):
     cursor.execute("SELECT answer_search FROM telegram_messages WHERE date=? AND channel=?", (date, channel))
     row = cursor.fetchone()
     existing_data = row[0] if row and row[0] else ""
-    current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S') + "\n"
+    current_time = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S') + "\n"
     if existing_data:
         updated_data = existing_data + "\n\n\n" + current_time + "\n\n".join(search_results)
     else:

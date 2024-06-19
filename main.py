@@ -10,7 +10,8 @@ from modules.telegram.telegram import (process_messages_with_chatbot,
                                        search_in_answers, search_in_messages)
 from modules.telegram.utils import clean_chatbot_answers, clean_search
 from modules.charts.charts import update_charts
-from modules.youtube.youtube import test_youtube, search_youtube
+from modules.youtube.youtube import search_youtube
+from modules.youtube.utils import test_youtube
 from modules.utils import get_current_date
 
 async def shutdown(loop, signal=None):
@@ -66,8 +67,8 @@ async def main_async():
             except ValueError:
                 print("Invalid input. Please enter a valid integer.")
         elif choice == '5':
-            date = input("Input YYYY-MM-DD: ")
-            search_youtube(date, projects)
+            date_project = input("Input YYYY-MM-DD or YYYY-MM-DD project_name: ")
+            search_youtube(date_project, projects)
             # test_youtube()
         elif choice == 'x':
             print("Exiting the program.")
