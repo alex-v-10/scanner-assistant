@@ -1,8 +1,8 @@
 import os
 import shutil
+import re
 
 from datetime import datetime, timedelta, timezone
-from dateutil import parser
 
 def delete_folder(folder_path):
     if os.path.exists(folder_path):
@@ -79,6 +79,16 @@ def extract_context(text, keyword, isUpper=False, context_len=50):
             index = text.lower().find(keyword.lower(), index + 1)
         count += 1
     return contexts
+  
+# def find_sentences_with_keyword(text, keyword):
+#     text = text.replace('\n', '')
+#     sentence_endings = re.compile(r'(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?)\s')
+#     sentences = sentence_endings.split(text)
+#     found_sentences = set()
+#     for sentence in sentences:
+#         if re.search(r'\b' + re.escape(keyword) + r'\b', sentence, re.IGNORECASE):
+#             found_sentences.add(sentence.strip())
+#     return list(found_sentences)
   
 def search_keyword_in_text(text, keyword):
     contexts = extract_context(text, keyword)

@@ -13,7 +13,7 @@ from .get import (get_chatbot_answer, get_chatbot_answer_db,
                   get_new_telegram_messages, get_telegram_min_id)
 from .set import (add_channel_to_ignore_list, delete_telegram_ignore_list,
                   set_answer_search, set_chatbot_answer, set_messages_search,
-                  set_new_telegram_messages)
+                  set_new_telegram_messages, delete_telegram_ignore_row)
 from .utils import search_channel_ids, save_messages_to_json
 
 async def start_telegram():
@@ -107,7 +107,7 @@ def process_messages_with_chatbot(date_channel, projects):
                         print(f'{channel} in ignore list.')
                         continue
                     process_channel_messages_with_chatbot(date, channel, conn, cursor, groq_client)
-            delete_telegram_ignore_list(date, conn, cursor)
+            delete_telegram_ignore_row(date, conn, cursor)
     except Exception as e:
         traceback.print_exc() 
         print(f"An unexpected error occurred: {e}")
@@ -124,12 +124,12 @@ def search_in_answers(date, projects):
             for channel in project['telegram_channels']:
                 answer = get_chatbot_answer_db(date, channel, cursor)
                 if answer:
-                    answer_lower = answer.lower()
                     search_results = []
                     for keyword in KEY_WORDS['upper']:
                         if keyword in answer:
                             result = search_keyword_in_text(answer, keyword)
                             search_results.append(result)
+                    answer_lower = answer.lower()
                     for keyword in KEY_WORDS['lower']:
                         if keyword in answer_lower:
                             result = search_keyword_in_text(answer_lower, keyword)

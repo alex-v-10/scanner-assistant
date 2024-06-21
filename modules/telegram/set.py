@@ -82,13 +82,6 @@ def add_channel_to_ignore_list(date, channel, cursor):
         cursor.execute('UPDATE ignore_list SET telegram_channels = ? WHERE date = ?', (updated_channels, date))
     else:
         cursor.execute('INSERT INTO ignore_list (date, telegram_channels) VALUES (?, ?)', (date, channel))
-        
-# def delete_ignore_list_by_date(date, conn, cursor):
-#     cursor.execute('''
-#         DELETE FROM ignore_list
-#         WHERE date = ?
-#     ''', (date,))
-#     conn.commit()
 
 def delete_telegram_ignore_list(date, conn, cursor):
     cursor.execute('''
@@ -96,4 +89,23 @@ def delete_telegram_ignore_list(date, conn, cursor):
         SET telegram_channels = NULL
         WHERE date = ?
     ''', (date,))
+    conn.commit()
+    
+def delete_telegram_ignore_row(date, conn, cursor):
+    cursor.execute('''
+        UPDATE ignore_list
+        SET telegram_channels = NULL
+        WHERE date = ?
+    ''', (date,))
+    cursor.execute('''
+        SELECT youtube
+        FROM ignore_list
+        WHERE date = ?
+    ''', (date,))
+    row = cursor.fetchone()
+    if row and row[0] is None:
+        cursor.execute('''
+            DELETE FROM ignore_list
+            WHERE date = ?
+        ''', (date,))
     conn.commit()

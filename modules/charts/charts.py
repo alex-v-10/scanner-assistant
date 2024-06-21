@@ -8,10 +8,20 @@ from ..utils import get_past_dates
 def set_telegram_in_charts(date, project, cursor):
     messages_sum = get_messages_sum(date, project, cursor)  
     cursor.execute('''
-        INSERT INTO charts (date, project, telegram)
-        VALUES (?, ?, ?)
-        ON CONFLICT(date, project) DO UPDATE SET telegram = excluded.telegram
-    ''', (date, project, messages_sum))
+        SELECT id FROM charts
+        WHERE date = ? AND project = ?
+    ''', (date, project))
+    if cursor.fetchone() is None:
+        cursor.execute('''
+            INSERT INTO charts (date, project, telegram)
+            VALUES (?, ?, ?)
+        ''', (date, project, messages_sum))
+    else:
+        cursor.execute('''
+            UPDATE charts
+            SET telegram = ?
+            WHERE date = ? AND project = ?
+        ''', (messages_sum, date, project))
 
 def update_charts(number, projects):
     conn = sqlite3.connect(DATABASE)

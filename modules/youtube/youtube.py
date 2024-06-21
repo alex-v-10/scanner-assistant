@@ -4,7 +4,7 @@ import traceback
 import sqlite3
 
 from ..utils import get_start_end_of_day, parse_date_string
-from .set import set_youtube_in_charts, add_to_youtube_ignore_list, delete_youtube_ignore_list, set_youtube_approx_in_charts
+from .set import set_youtube_in_charts, add_to_youtube_ignore_list, delete_youtube_ignore_list, delete_youtube_ignore_row
 from .get import get_youtube_ignore_list
 from ..const import DATABASE
 
@@ -78,14 +78,13 @@ def search_youtube(date_project, projects):
                 number_of_videos_approx_list.append(number_of_videos_approx)
             result_number = max(number_of_videos_list)
             result_number_approx = max(number_of_videos_approx_list)
-            set_youtube_in_charts(date, project_name, result_number, cursor)
-            set_youtube_approx_in_charts(date, project_name, result_number_approx, cursor)
+            set_youtube_in_charts(date, project_name, result_number, result_number_approx, cursor)
             add_to_youtube_ignore_list(date, project_name, cursor)
             conn.commit()
             print(f'{project_name},')
             if input_project:
                 return
-        delete_youtube_ignore_list(date, conn, cursor)
+        delete_youtube_ignore_row(date, conn, cursor)
     except Exception as e:
         traceback.print_exc() 
         print(f"An unexpected error occurred: {e}")

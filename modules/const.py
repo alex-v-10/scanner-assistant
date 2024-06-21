@@ -12,7 +12,8 @@ KEY_WORDS = {
     ],
     'lower': [
         'january', 'february', 'march', 'april', 'june',
-        'july', 'august', 'september', 'october', 'november', 'december'
+        'july', 'august', 'september', 'october', 'november', 'december', 'tomorrow',
+        'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'
     ],
 }
 CHATBOT = {

@@ -61,7 +61,6 @@ pydantic_core==2.18.4
 Pygments==2.18.0
 pyparsing==3.1.2
 PySocks==1.7.1
-python-dateutil==2.9.0.post0
 python-dotenv==1.0.1
 pywin32==306
 pyzmq==26.0.3
