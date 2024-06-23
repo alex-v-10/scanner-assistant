@@ -125,15 +125,11 @@ def search_in_answers(date, projects):
                 answer = get_chatbot_answer_db(date, channel, cursor)
                 if answer:
                     search_results = []
-                    for keyword in KEY_WORDS['upper']:
-                        if keyword in answer:
-                            result = search_keyword_in_text(answer, keyword)
-                            search_results.append(result)
-                    answer_lower = answer.lower()
                     for keyword in KEY_WORDS['lower']:
-                        if keyword in answer_lower:
-                            result = search_keyword_in_text(answer_lower, keyword)
-                            search_results.append(result)
+                        if keyword in answer.lower():
+                            result = search_keyword_in_text(answer, keyword)
+                            if result:
+                                search_results.append(result)
                     if search_results:
                         set_answer_search(date, channel, search_results, cursor)
         conn.commit()

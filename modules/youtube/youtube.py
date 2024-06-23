@@ -19,7 +19,7 @@ def get_number_of_videos(keyword, youtube, all_popular, published_after=None, pu
     max_results = 50 
     number_of_videos = 0
     next_page_token = None
-    popular_found = set()
+    popular_names = set()
     
     for _ in range(1):
         print('- youtube query')
@@ -38,13 +38,13 @@ def get_number_of_videos(keyword, youtube, all_popular, published_after=None, pu
         for item in items:
             channel_title = item['snippet']['channelTitle']
             if item['snippet']['channelTitle'] in all_popular:
-                popular_found.add(channel_title)
+                popular_names.add(channel_title)
         number_of_videos += len(items)
         next_page_token = search_response.get('nextPageToken')
         
         if not next_page_token:
             break
-    return number_of_videos, total_results, popular_found
+    return number_of_videos, total_results, popular_names
     
 def search_youtube(date_project, projects):
     conn = sqlite3.connect(DATABASE)
@@ -84,12 +84,12 @@ def search_youtube(date_project, projects):
             keywords = project.get('youtube_keywords', [])
             number_of_videos = 0
             number_of_videos_approx = 0
-            popular_found = set()
+            popular_names = set()
             for keyword in keywords:
-                number_of_videos, number_of_videos_approx, popular_found = get_number_of_videos(
+                number_of_videos, number_of_videos_approx, popular_names = get_number_of_videos(
                   keyword, youtube, all_popular, published_after, published_before
                 )
-                set_youtube_in_charts(date, project_name, keyword, number_of_videos, number_of_videos_approx, popular_found, cursor)
+                set_youtube_in_charts(date, project_name, keyword, number_of_videos, number_of_videos_approx, popular_names, cursor)
             add_to_youtube_ignore_list(date, project_name, cursor)
             conn.commit()
             print(f'{project_name},')

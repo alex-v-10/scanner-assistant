@@ -57,7 +57,6 @@ def create_table():
                 videos TEXT,
                 videos_approx TEXT,
                 popular TEXT,
-                popular_list TEXT,
                 UNIQUE(date, project, keyword)
             )
         ''')

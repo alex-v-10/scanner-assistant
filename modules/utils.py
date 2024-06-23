@@ -61,39 +61,26 @@ def split_prompt(text, split_length, description, questions):
         })
     return file_data
   
-def extract_context(text, keyword, isUpper=False, context_len=50):
+def find_sentences_with_keyword(text, keyword):
     text = text.replace('\n', ' ')
-    contexts = []
-    if isUpper:
-        index = text.find(keyword)
-    else:
-        index = text.lower().find(keyword.lower())
+    sentence_endings = re.compile(r'[.!?]')
+    sentences = sentence_endings.split(text)
+    found_sentences = []
     count = 1
-    while index != -1:
-        start = max(index - context_len, 0)
-        end = min(index + len(keyword) + context_len, len(text))
-        contexts.append(f'{count}) {text[start:end]}')
-        if isUpper:
-            index = text.find(keyword, index + 1)
-        else:
-            index = text.lower().find(keyword.lower(), index + 1)
-        count += 1
-    return contexts
-  
-# def find_sentences_with_keyword(text, keyword):
-#     text = text.replace('\n', '')
-#     sentence_endings = re.compile(r'(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?)\s')
-#     sentences = sentence_endings.split(text)
-#     found_sentences = set()
-#     for sentence in sentences:
-#         if re.search(r'\b' + re.escape(keyword) + r'\b', sentence, re.IGNORECASE):
-#             found_sentences.add(sentence.strip())
-#     return list(found_sentences)
+    for sentence in sentences:
+        # Strict: r'\b' + re.escape(keyword) + r'\b'
+        if re.search(re.escape(keyword), sentence, re.IGNORECASE):
+            found_sentences.append(f'{count}) {sentence.strip()}')
+            count += 1
+    return found_sentences
   
 def search_keyword_in_text(text, keyword):
-    contexts = extract_context(text, keyword)
-    search_result = f'Found {keyword}:\n{'\n'.join(contexts)}'
-    return search_result
+    contexts = find_sentences_with_keyword(text, keyword)
+    if contexts:
+        search_result = f'Found {keyword}:\n{'\n'.join(contexts)}'
+        return search_result
+    else:
+        return None
   
 def get_current_date():
     return datetime.now(timezone.utc).strftime('%Y-%m-%d')
