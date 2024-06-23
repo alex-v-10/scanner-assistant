@@ -11,3 +11,4 @@ projects_test.json
 ignore.json
 chromedriver.exe
 browser/
+projects/

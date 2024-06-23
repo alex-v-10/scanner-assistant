@@ -62,7 +62,7 @@ def split_prompt(text, split_length, description, questions):
     return file_data
   
 def extract_context(text, keyword, isUpper=False, context_len=50):
-    text = text.replace('\n', '')
+    text = text.replace('\n', ' ')
     contexts = []
     if isUpper:
         index = text.find(keyword)

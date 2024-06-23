@@ -7,16 +7,18 @@ from ..utils import get_start_end_of_day, parse_date_string
 from .set import set_youtube_in_charts, add_to_youtube_ignore_list, delete_youtube_ignore_list, delete_youtube_ignore_row
 from .get import get_youtube_ignore_list
 from ..const import DATABASE
+from projects.youtube_popular import YOUTUBE_POPULAR
 
 
 def start_youtube():
     youtube = build('youtube', 'v3', developerKey=os.getenv('YOUTUBE_API_KEY'))
     return youtube
 
-def get_number_of_videos(keyword, youtube, published_after=None, published_before=None):
+def get_number_of_videos(keyword, youtube, all_popular, published_after=None, published_before=None):
     max_results = 50 
     number_of_videos = 0
     next_page_token = None
+    popular_found = set()
     
     for _ in range(1):
         print('- youtube query')
@@ -32,17 +34,22 @@ def get_number_of_videos(keyword, youtube, published_after=None, published_befor
         search_response = search_request.execute()
         total_results = search_response['pageInfo']['totalResults']
         items = search_response.get('items', [])
+        for item in items:
+            channel_title = item['snippet']['channelTitle']
+            if item['snippet']['channelTitle'] in all_popular:
+                popular_found.add(channel_title)
         number_of_videos += len(items)
         next_page_token = search_response.get('nextPageToken')
         
         if not next_page_token:
             break
-    return number_of_videos, total_results
+    return number_of_videos, total_results, popular_found
     
 def search_youtube(date_project, projects):
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
     youtube = start_youtube()
+    all_popular = YOUTUBE_POPULAR
     date_project_parts = date_project.split(' ', 1)
     date = date_project_parts[0]
     input_project = None
@@ -72,13 +79,16 @@ def search_youtube(date_project, projects):
             keywords = project.get('youtube_keywords', [])
             number_of_videos_list = [0]
             number_of_videos_approx_list = [0]
+            popular_found = set()
             for keyword in keywords:
-                number_of_videos, number_of_videos_approx = get_number_of_videos(keyword, youtube, published_after, published_before)
+                number_of_videos, number_of_videos_approx, popular_found = get_number_of_videos(
+                  keyword, youtube, all_popular, published_after, published_before
+                )
                 number_of_videos_list.append(number_of_videos)
                 number_of_videos_approx_list.append(number_of_videos_approx)
             result_number = max(number_of_videos_list)
             result_number_approx = max(number_of_videos_approx_list)
-            set_youtube_in_charts(date, project_name, result_number, result_number_approx, cursor)
+            set_youtube_in_charts(date, project_name, result_number, result_number_approx, popular_found, cursor)
             add_to_youtube_ignore_list(date, project_name, cursor)
             conn.commit()
             print(f'{project_name},')

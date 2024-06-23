@@ -1,6 +1,5 @@
 import asyncio
 import traceback
-import json
 
 from dotenv import load_dotenv
 from modules.browser.browser import browse
@@ -13,6 +12,7 @@ from modules.charts.charts import update_charts
 from modules.youtube.youtube import search_youtube
 from modules.youtube.utils import test_youtube
 from modules.utils import get_current_date
+from projects.projects import PROJECTS
 
 async def shutdown(loop, signal=None):
     """Cleanup tasks tied to the service's shutdown."""
@@ -26,8 +26,7 @@ async def shutdown(loop, signal=None):
     loop.stop()
 
 async def main_async():
-    with open('projects.json', 'r') as f:
-        projects = json.load(f)
+    projects = PROJECTS
     while True:
         print("")
         print("Press 1 to save new Telegram messages to the database.")

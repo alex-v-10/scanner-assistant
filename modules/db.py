@@ -16,15 +16,18 @@ def create_table():
                 messages_count TEXT,
                 chatbot_answer TEXT,
                 answer_search TEXT,
-                messages_search TEXT
+                messages_search TEXT,
+                UNIQUE (date, channel)
             )
         ''')
+        
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS telegram_min_ids (
                 channel TEXT PRIMARY KEY,
                 min_id TEXT
             )
         ''')
+        
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS ignore_list (
                 date TEXT PRIMARY KEY,
@@ -32,6 +35,7 @@ def create_table():
                 youtube TEXT
             )
         ''')
+        
         cursor.execute('''
             CREATE TABLE IF NOT EXISTS charts (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -43,6 +47,20 @@ def create_table():
                 UNIQUE(date, project)
             )
         ''')
+        
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS youtube (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                date TEXT,
+                project TEXT,
+                videos TEXT,
+                videos_approx TEXT,
+                popular TEXT,
+                popular_list TEXT,
+                UNIQUE(date, project)
+            )
+        ''')
+        
         conn.commit()
     except Exception as e:
         traceback.print_exc() 
