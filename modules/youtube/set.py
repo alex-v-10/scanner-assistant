@@ -1,21 +1,21 @@
-def set_youtube_in_charts(date, project, number, number_approx, popular_found, cursor):
+def set_youtube_in_charts(date, project, keyword, number, number_approx, popular_found, cursor):
     popular = len(popular_found)
     popular_list = ','.join(popular_found)
     cursor.execute('''
         SELECT id FROM youtube
-        WHERE date = ? AND project = ?
-    ''', (date, project))
+        WHERE date = ? AND project = ? AND keyword = ?
+    ''', (date, project, keyword))
     if cursor.fetchone() is None:
         cursor.execute('''
-            INSERT INTO youtube (date, project, videos, videos_approx, popular, popular_list)
-            VALUES (?, ?, ?, ?, ?, ?)
-        ''', (date, project, number, number_approx, popular, popular_list))
+            INSERT INTO youtube (date, project, keyword, videos, videos_approx, popular, popular_list)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
+        ''', (date, project, keyword, number, number_approx, popular, popular_list))
     else:
         cursor.execute('''
             UPDATE youtube
             SET videos = ?, videos_approx = ?, popular = ?, popular_list = ?
-            WHERE date = ? AND project = ?
-        ''', (number, number_approx, popular, popular_list, date, project))
+            WHERE date = ? AND project = ? AND keyword = ?
+        ''', (number, number_approx, popular, popular_list, date, project, keyword))
 
 def add_to_youtube_ignore_list(date, project, cursor):
     cursor.execute('SELECT youtube FROM ignore_list WHERE date = ?', (date,))

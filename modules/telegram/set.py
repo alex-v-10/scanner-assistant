@@ -18,7 +18,7 @@ def set_new_telegram_messages(channel, project, new_messages, cursor):
         messages_by_date[date].append(message) 
     for date, messages in messages_by_date.items():
         cursor.execute('''
-            SELECT messages, project FROM telegram_messages
+            SELECT messages, project FROM telegram
             WHERE date=? AND channel=?
         ''', (date, channel))  
         result = cursor.fetchone()
@@ -29,31 +29,31 @@ def set_new_telegram_messages(channel, project, new_messages, cursor):
             updated_messages = json.dumps(existing_messages)     
             if existing_project != project:
                 cursor.execute('''
-                    UPDATE telegram_messages
+                    UPDATE telegram
                     SET project=?, messages=?, messages_count=?
                     WHERE date=? AND channel=?
                 ''', (project, updated_messages, len(existing_messages), date, channel))
             else:
                 cursor.execute('''
-                    UPDATE telegram_messages
+                    UPDATE telegram
                     SET messages=?, messages_count=?
                     WHERE date=? AND channel=?
                 ''', (updated_messages, len(existing_messages), date, channel))
         else:
             cursor.execute('''
-                INSERT INTO telegram_messages (date, channel, project, messages, messages_count)
+                INSERT INTO telegram (date, channel, project, messages, messages_count)
                 VALUES (?, ?, ?, ?, ?)
             ''', (date, channel, project, json.dumps(messages), len(messages)))
             
 def set_chatbot_answer(date, channel, answer, cursor):
     cursor.execute('''
-        UPDATE telegram_messages
+        UPDATE telegram
         SET chatbot_answer=? 
         WHERE date=? AND channel=?
     ''', (answer, date, channel))
     
 def set_answer_search(date, channel, search_results, cursor):
-    cursor.execute("SELECT answer_search FROM telegram_messages WHERE date=? AND channel=?", (date, channel))
+    cursor.execute("SELECT answer_search FROM telegram WHERE date=? AND channel=?", (date, channel))
     row = cursor.fetchone()
     existing_data = row[0] if row and row[0] else ""
     current_time = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S') + "\n"
@@ -61,12 +61,12 @@ def set_answer_search(date, channel, search_results, cursor):
         updated_data = existing_data + "\n\n\n" + current_time + "\n\n".join(search_results)
     else:
         updated_data = current_time + "\n\n".join(search_results)
-    cursor.execute("UPDATE telegram_messages SET answer_search=? WHERE date=? AND channel=?", (updated_data, date, channel))
+    cursor.execute("UPDATE telegram SET answer_search=? WHERE date=? AND channel=?", (updated_data, date, channel))
     
 def set_messages_search(date, channel, found_messages, cursor):
     messages_to_write = json.dumps(found_messages)
     cursor.execute('''
-        UPDATE telegram_messages
+        UPDATE telegram
         SET messages_search = ?
         WHERE date = ? AND channel = ?
     ''', (messages_to_write, date, channel))

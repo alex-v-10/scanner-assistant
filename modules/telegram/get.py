@@ -51,7 +51,7 @@ async def get_new_telegram_messages(channel, project, channel_entity, min_id, te
 def get_messages_db(date, channel, cursor):
     cursor.execute('''
             SELECT messages
-            FROM telegram_messages
+            FROM telegram
             WHERE date=? AND channel=?
         ''', (date, channel))
     row = cursor.fetchone()
@@ -85,7 +85,7 @@ def get_chatbot_answer(date, channel, messages, groq_client):
 def get_chatbot_answer_db(date, channel, cursor):
   cursor.execute('''
       SELECT chatbot_answer 
-      FROM telegram_messages
+      FROM telegram
       WHERE date=? AND channel=?
   ''', (date, channel))
   row = cursor.fetchone()
@@ -105,7 +105,7 @@ def get_chatbot_ignore_list(date, cursor):
 def get_messages_sum(date, project, cursor):
     cursor.execute('''
         SELECT SUM(CAST(messages_count AS INTEGER))
-        FROM telegram_messages
+        FROM telegram
         WHERE date = ? AND project = ?
     ''', (date, project,))
     result = cursor.fetchone()

@@ -15,7 +15,7 @@ def clean_chatbot_answers():
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
     try:
-        cursor.execute("UPDATE telegram_messages SET chatbot_answer = ''")
+        cursor.execute("UPDATE telegram SET chatbot_answer = ''")
         cursor.execute("UPDATE ignore_list SET date = '', telegram_channels=''")
         conn.commit()
     except Exception as e:
@@ -29,7 +29,7 @@ def clean_search():
   conn = sqlite3.connect(DATABASE)
   cursor = conn.cursor()
   try:
-      cursor.execute("UPDATE telegram_messages SET answer_search = '', messages_search = ''")
+      cursor.execute("UPDATE telegram SET answer_search = '', messages_search = ''")
       conn.commit()
   except Exception as e:
       traceback.print_exc() 

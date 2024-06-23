@@ -7,7 +7,7 @@ def create_table():
     cursor = conn.cursor()
     try:
         cursor.execute('''
-            CREATE TABLE IF NOT EXISTS telegram_messages (
+            CREATE TABLE IF NOT EXISTS telegram (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 date TEXT,
                 channel TEXT,
@@ -53,14 +53,15 @@ def create_table():
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 date TEXT,
                 project TEXT,
+                keyword TEXT,
                 videos TEXT,
                 videos_approx TEXT,
                 popular TEXT,
                 popular_list TEXT,
-                UNIQUE(date, project)
+                UNIQUE(date, project, keyword)
             )
         ''')
-        
+
         conn.commit()
     except Exception as e:
         traceback.print_exc() 

@@ -2,6 +2,7 @@ from googleapiclient.discovery import build
 import os
 import traceback
 import sqlite3
+import time
 
 from ..utils import get_start_end_of_day, parse_date_string
 from .set import set_youtube_in_charts, add_to_youtube_ignore_list, delete_youtube_ignore_list, delete_youtube_ignore_row
@@ -71,24 +72,24 @@ def search_youtube(date_project, projects):
                     return
         for project in projects:
             project_name = project['project']
+            keywords = project.get('youtube_keywords', [])
+            if not keywords:
+                print(f'{project_name} no keywords.')
+                continue
             if input_project and input_project != project_name:
                 continue
             if not input_project and project_name in ignore_list:
                 print(f'{project_name} in ignore list.')
                 continue
             keywords = project.get('youtube_keywords', [])
-            number_of_videos_list = [0]
-            number_of_videos_approx_list = [0]
+            number_of_videos = 0
+            number_of_videos_approx = 0
             popular_found = set()
             for keyword in keywords:
                 number_of_videos, number_of_videos_approx, popular_found = get_number_of_videos(
                   keyword, youtube, all_popular, published_after, published_before
                 )
-                number_of_videos_list.append(number_of_videos)
-                number_of_videos_approx_list.append(number_of_videos_approx)
-            result_number = max(number_of_videos_list)
-            result_number_approx = max(number_of_videos_approx_list)
-            set_youtube_in_charts(date, project_name, result_number, result_number_approx, popular_found, cursor)
+                set_youtube_in_charts(date, project_name, keyword, number_of_videos, number_of_videos_approx, popular_found, cursor)
             add_to_youtube_ignore_list(date, project_name, cursor)
             conn.commit()
             print(f'{project_name},')
