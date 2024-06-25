@@ -7,7 +7,7 @@ def set_youtube_in_charts(date, project, keyword, number, number_approx, popular
     if cursor.fetchone() is None:
         cursor.execute('''
             INSERT INTO youtube (date, project, keyword, videos, videos_approx, popular)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?)
         ''', (date, project, keyword, number, number_approx, popular_names))
     else:
         cursor.execute('''
@@ -43,12 +43,12 @@ def delete_youtube_ignore_row(date, conn, cursor):
         WHERE date = ?
     ''', (date,))
     cursor.execute('''
-        SELECT telegram_channels
+        SELECT telegram_channels, coingecko
         FROM ignore_list
         WHERE date = ?
     ''', (date,))
     row = cursor.fetchone()
-    if row and row[0] is None:
+    if row and row[0] is None and row[1] is None:
         cursor.execute('''
             DELETE FROM ignore_list
             WHERE date = ?

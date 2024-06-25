@@ -98,12 +98,12 @@ def delete_telegram_ignore_row(date, conn, cursor):
         WHERE date = ?
     ''', (date,))
     cursor.execute('''
-        SELECT youtube
+        SELECT youtube, coingecko
         FROM ignore_list
         WHERE date = ?
     ''', (date,))
     row = cursor.fetchone()
-    if row and row[0] is None:
+    if row and row[0] is None and row[1] is None:
         cursor.execute('''
             DELETE FROM ignore_list
             WHERE date = ?

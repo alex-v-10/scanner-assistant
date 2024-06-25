@@ -72,16 +72,17 @@ def search_youtube(date_project, projects):
                     return
         for project in projects:
             project_name = project['project']
-            keywords = project.get('youtube_keywords', [])
-            if not keywords:
-                print(f'{project_name} no keywords.')
-                continue
             if input_project and input_project != project_name:
                 continue
             if not input_project and project_name in ignore_list:
                 print(f'{project_name} in ignore list.')
                 continue
             keywords = project.get('youtube_keywords', [])
+            if not keywords:
+                print(f'{project_name} no keywords.')
+                if input_project:
+                    return
+                continue
             number_of_videos = 0
             number_of_videos_approx = 0
             popular_names = set()

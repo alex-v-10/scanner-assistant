@@ -77,7 +77,7 @@ def find_sentences_with_keyword(text, keyword):
 def search_keyword_in_text(text, keyword):
     contexts = find_sentences_with_keyword(text, keyword)
     if contexts:
-        search_result = f'Found {keyword}:\n{'\n'.join(contexts)}'
+        search_result = f'{keyword}:\n{'\n'.join(contexts)}'
         return search_result
     else:
         return None

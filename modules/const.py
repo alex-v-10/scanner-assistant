@@ -1,5 +1,6 @@
-DATABASE = 'data.db'
-# DATABASE = 'test.db'
+# DATABASE = 'data.db'
+# DATABASE = 'data_2.db'
+DATABASE = 'test.db'
 NEW_CHANNEL_LIMIT = 5
 NEW_CHANNEL_LIMIT_SMALL = 5
 MESSAGES_BATCH_LIMIT = 1000

@@ -13,7 +13,7 @@ def create_table():
                 channel TEXT,
                 project TEXT,
                 messages TEXT,
-                messages_count TEXT,
+                messages_count INTEGER,
                 chatbot_answer TEXT,
                 answer_search TEXT,
                 messages_search TEXT,
@@ -32,7 +32,8 @@ def create_table():
             CREATE TABLE IF NOT EXISTS ignore_list (
                 date TEXT PRIMARY KEY,
                 telegram_channels TEXT,
-                youtube TEXT
+                youtube TEXT,
+                coingecko TEXT
             )
         ''')
         
@@ -41,9 +42,7 @@ def create_table():
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 date TEXT,
                 project TEXT,
-                telegram TEXT,
-                youtube TEXT,
-                youtube_approx TEXT,
+                telegram INTEGER,
                 UNIQUE(date, project)
             )
         ''')
@@ -54,10 +53,21 @@ def create_table():
                 date TEXT,
                 project TEXT,
                 keyword TEXT,
-                videos TEXT,
-                videos_approx TEXT,
+                videos INTEGER,
+                videos_approx INTEGER,
                 popular TEXT,
                 UNIQUE(date, project, keyword)
+            )
+        ''')
+        
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS coingecko (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                date TEXT,
+                project TEXT,
+                twitter_followers INTEGER,
+                telegram_channel_user_count INTEGER,
+                UNIQUE(date, project)
             )
         ''')
 

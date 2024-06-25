@@ -12,6 +12,7 @@ from modules.charts.charts import update_charts
 from modules.youtube.youtube import search_youtube
 from modules.youtube.utils import test_youtube
 from modules.utils import get_current_date
+from modules.coingecko.coingecko import collect_data_coingecko
 from projects.projects import PROJECTS
 
 async def shutdown(loop, signal=None):
@@ -33,7 +34,8 @@ async def main_async():
         print("Press 2 to process Telegram messages with chatbot.")
         print("Press 3 to search keywords in Telegram messages and chatbot answers")
         print("Press 4 to update charts.")
-        print("Press 5 to test youtube search.")
+        print("Press 5 to search projects in youtube.")
+        print("Press 6 to get community data from coingecko.")
         print("Press x to exit the program.") 
         choice = input("Enter your choice: ")
         if choice == '1':
@@ -57,7 +59,7 @@ async def main_async():
             try:
                 if number == '':
                     number = 1
-                number = int(number)  # Convert input to integer
+                number = int(number)
                 if 1 <= number <= 7:
                     update_charts(number, projects)
                     print('Updated.')
@@ -69,6 +71,9 @@ async def main_async():
             date_project = input("Input YYYY-MM-DD or YYYY-MM-DD project_name: ")
             search_youtube(date_project, projects)
             # test_youtube()
+        elif choice == '6':
+            project_name = input("Input project_name or leave empty for all: ")
+            collect_data_coingecko(project_name, projects)
         elif choice == 'x':
             print("Exiting the program.")
             await shutdown(asyncio.get_running_loop())
