@@ -15,8 +15,10 @@ def create_table():
                 messages TEXT,
                 messages_count INTEGER,
                 chatbot_answer TEXT,
-                answer_search TEXT,
-                messages_search TEXT,
+                answer_search_1 TEXT,
+                messages_search_1 TEXT,
+                answer_search_2 TEXT,
+                messages_search_2 TEXT,
                 UNIQUE (date, channel)
             )
         ''')
@@ -67,6 +69,17 @@ def create_table():
                 project TEXT,
                 twitter_followers INTEGER,
                 telegram_channel_user_count INTEGER,
+                UNIQUE(date, project)
+            )
+        ''')
+        
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS event_search (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                date TEXT,
+                project TEXT,
+                answer TEXT,
+                messages TEXT,
                 UNIQUE(date, project)
             )
         ''')

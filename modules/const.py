@@ -1,6 +1,6 @@
-# DATABASE = 'data.db'
+DATABASE = 'data.db'
 # DATABASE = 'data_2.db'
-DATABASE = 'test.db'
+# DATABASE = 'test.db'
 NEW_CHANNEL_LIMIT = 5
 NEW_CHANNEL_LIMIT_SMALL = 5
 MESSAGES_BATCH_LIMIT = 1000
@@ -11,10 +11,13 @@ KEY_WORDS = {
     'upper': [
         'May'
     ],
-    'lower': [
+    '1': [
         'january', 'february', 'march', 'april', 'june',
         'july', 'august', 'september', 'october', 'november', 'december', 'tomorrow',
         'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'
+    ],
+    '2': [
+        'release', 'launch', 'alpha', 'beta', 'list', 'drop'
     ],
 }
 CHATBOT = {

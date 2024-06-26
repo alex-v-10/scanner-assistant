@@ -55,32 +55,41 @@ def split_prompt(text, split_length, description, questions):
         start = i * split_length
         end = min((i + 1) * split_length, len(text))
         content = text[start:end]
+        #TODO outside
         content += f'\n [END OF LOG] \n{description}\n ANSWER QUESTIONS: \n{questions}'
         file_data.append({
             'prompt': content
         })
     return file_data
-  
-def find_sentences_with_keyword(text, keyword):
+
+def split_text_into_sentences(text):
     text = text.replace('\n', ' ')
     sentence_endings = re.compile(r'[.!?]')
     sentences = sentence_endings.split(text)
+    result_sentences = []
+    for sentence in sentences:
+        result_sentences.append(sentence.strip())
+    return result_sentences
+
+def find_sentences_with_keyword(sentences, keyword):
     found_sentences = []
-    count = 1
     for sentence in sentences:
         # Strict: r'\b' + re.escape(keyword) + r'\b'
         if re.search(re.escape(keyword), sentence, re.IGNORECASE):
-            found_sentences.append(f'{count}) {sentence.strip()}')
-            count += 1
+            found_sentences.append(sentence.strip())
     return found_sentences
   
-def search_keyword_in_text(text, keyword):
-    contexts = find_sentences_with_keyword(text, keyword)
-    if contexts:
-        search_result = f'{keyword}:\n{'\n'.join(contexts)}'
-        return search_result
-    else:
-        return None
+def number_sentences(sentences):
+    numbered_sentences = []
+    count = 1
+    for sentence in sentences:
+        numbered_sentences.append(f'{count}) {sentence}')
+    return numbered_sentences
+  
+def form_keyword_group_string(sentences, keywords):
+    numbered_sentences = number_sentences(sentences)
+    search_result = f'{keywords}:\n{'\n'.join(numbered_sentences)}'
+    return search_result
   
 def get_current_date():
     return datetime.now(timezone.utc).strftime('%Y-%m-%d')

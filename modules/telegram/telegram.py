@@ -7,14 +7,17 @@ from telethon.sync import TelegramClient
 
 from ..chatbot.chatbot import get_groq_client
 from ..const import DATABASE, KEY_WORDS
-from ..utils import delete_folder, search_keyword_in_text, get_current_date
+from ..utils import (delete_folder, find_sentences_with_keyword,
+                     form_keyword_group_string, get_current_date,
+                     split_text_into_sentences)
 from .get import (get_chatbot_answer, get_chatbot_answer_db,
                   get_chatbot_ignore_list, get_messages_db,
                   get_new_telegram_messages, get_telegram_min_id)
 from .set import (add_channel_to_ignore_list, delete_telegram_ignore_list,
-                  set_answer_search, set_chatbot_answer, set_messages_search,
-                  set_new_telegram_messages, delete_telegram_ignore_row)
-from .utils import search_channel_ids, save_messages_to_json
+                  delete_telegram_ignore_row, set_chatbot_answer,
+                  set_new_telegram_messages, set_search_column)
+from .utils import save_messages_to_json, search_channel_ids
+
 
 async def start_telegram():
     api_id = os.getenv('TELEGRAM_API_ID')
@@ -116,6 +119,27 @@ def process_messages_with_chatbot(date_channel, projects):
         conn.close()
         groq_client.close()
 
+def search_action(date, channel, messages, cursor, column, i, limit):
+    found_messages = []
+    for message in messages:
+        if message['message'] is None:
+            continue
+        message_found = False
+        for keyword in KEY_WORDS[f'{i}']:
+            if keyword in message['message'].lower():
+                if not message_found:
+                    found_messages.append(message)
+                    message_found = True
+                    #TODO decide list vs ,
+                    message[f'keywords_{i}'] = [keyword]
+                else:
+                    message[f'keywords_{i}'].append(keyword)
+    set_search_column(date, channel, found_messages, cursor, f'{column}_{i}')
+    i += 1
+    if i > limit:
+       return
+    search_action(date, channel, found_messages, cursor, column, i, limit)
+
 def search_in_answers(date, projects):
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
@@ -124,14 +148,13 @@ def search_in_answers(date, projects):
             for channel in project['telegram_channels']:
                 answer = get_chatbot_answer_db(date, channel, cursor)
                 if answer:
-                    search_results = []
-                    for keyword in KEY_WORDS['lower']:
-                        if keyword in answer.lower():
-                            result = search_keyword_in_text(answer, keyword)
-                            if result:
-                                search_results.append(result)
-                    if search_results:
-                        set_answer_search(date, channel, search_results, cursor)
+                    sentences = split_text_into_sentences(answer)
+                    messages = []
+                    for sentence in sentences:
+                        messages.append({
+                          'message': sentence,
+                        })
+                    search_action(date, channel, messages, cursor, 'answer_search', 1, 2)
         conn.commit()
     except Exception as e:
         traceback.print_exc() 
@@ -148,16 +171,7 @@ def search_in_messages(date, projects):
             for channel in project['telegram_channels']:
                 messages = get_messages_db(date, channel, cursor)
                 if messages:
-                    found_messages = []
-                    for message in messages:
-                        if message['message'] is None:
-                            continue
-                        for word in KEY_WORDS['lower']:
-                            if word in message['message'].lower():
-                                found_messages.append(message)
-                                break
-                    if found_messages:
-                        set_messages_search(date, channel, found_messages, cursor)
+                    search_action(date, channel, messages, cursor, 'messages_search', 1, 2)
         conn.commit()
     except Exception as e:
         traceback.print_exc() 
@@ -165,3 +179,5 @@ def search_in_messages(date, projects):
     finally:
         cursor.close()
         conn.close()
+        
+#TODO combine search to event_search

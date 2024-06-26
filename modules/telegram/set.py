@@ -52,22 +52,25 @@ def set_chatbot_answer(date, channel, answer, cursor):
         WHERE date=? AND channel=?
     ''', (answer, date, channel))
     
-def set_answer_search(date, channel, search_results, cursor):
-    cursor.execute("SELECT answer_search FROM telegram WHERE date=? AND channel=?", (date, channel))
-    row = cursor.fetchone()
-    existing_data = row[0] if row and row[0] else ""
-    current_time = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S') + "\n"
-    if existing_data:
-        updated_data = existing_data + "\n\n\n" + current_time + "\n\n".join(search_results)
+# def set_answer_search(date, channel, search_results, cursor):
+#     cursor.execute("SELECT answer_search FROM telegram WHERE date=? AND channel=?", (date, channel))
+#     row = cursor.fetchone()
+#     existing_data = row[0] if row and row[0] else ""
+#     current_time = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S') + "\n"
+#     if existing_data:
+#         updated_data = existing_data + "\n\n\n" + current_time + "\n\n".join(search_results)
+#     else:
+#         updated_data = current_time + "\n\n".join(search_results)
+#     cursor.execute("UPDATE telegram SET answer_search=? WHERE date=? AND channel=?", (updated_data, date, channel))
+
+def set_search_column(date, channel, found_messages, cursor, column):
+    if found_messages:
+        messages_to_write = json.dumps(found_messages)
     else:
-        updated_data = current_time + "\n\n".join(search_results)
-    cursor.execute("UPDATE telegram SET answer_search=? WHERE date=? AND channel=?", (updated_data, date, channel))
-    
-def set_messages_search(date, channel, found_messages, cursor):
-    messages_to_write = json.dumps(found_messages)
-    cursor.execute('''
+        messages_to_write = None
+    cursor.execute(f'''
         UPDATE telegram
-        SET messages_search = ?
+        SET {column} = ?
         WHERE date = ? AND channel = ?
     ''', (messages_to_write, date, channel))
     
