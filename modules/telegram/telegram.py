@@ -15,7 +15,7 @@ from .get import (get_chatbot_answer, get_chatbot_answer_db,
                   get_new_telegram_messages, get_telegram_min_id)
 from .set import (add_channel_to_ignore_list, delete_telegram_ignore_list,
                   delete_telegram_ignore_row, set_chatbot_answer,
-                  set_new_telegram_messages, set_search_column)
+                  set_new_telegram_messages, set_search_column, set_search_table)
 from .utils import save_messages_to_json, search_channel_ids
 
 
@@ -130,31 +130,50 @@ def search_action(date, channel, messages, cursor, column, i, limit):
                 if not message_found:
                     found_messages.append(message)
                     message_found = True
-                    #TODO decide list vs ,
-                    message[f'keywords_{i}'] = [keyword]
+                    message[f'keywords_{i}'] = keyword
                 else:
-                    message[f'keywords_{i}'].append(keyword)
+                    message[f'keywords_{i}'] += ', ' + keyword
     set_search_column(date, channel, found_messages, cursor, f'{column}_{i}')
     i += 1
     if i > limit:
-       return
-    search_action(date, channel, found_messages, cursor, column, i, limit)
+       return found_messages
+    return search_action(date, channel, found_messages, cursor, column, i, limit)
 
-def search_in_answers(date, projects):
+def search_in_answers(date, channel, cursor):
+    found_messages = []
+    answer = get_chatbot_answer_db(date, channel, cursor)
+    if answer:
+        sentences = split_text_into_sentences(answer)
+        messages = []
+        for sentence in sentences:
+            messages.append({
+              'message': sentence,
+            })
+        found_messages = search_action(date, channel, messages, cursor, 'answer_search', 1, 2)
+    return found_messages
+
+def search_in_messages(date, channel, cursor):
+    found_messages = []
+    messages = get_messages_db(date, channel, cursor)
+    if messages:
+        for message in messages:
+            message.pop('id', None)
+        found_messages = search_action(date, channel, messages, cursor, 'messages_search', 1, 2)
+    return found_messages
+  
+def search_messages(date, projects):
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
     try:
         for project in projects:
+            project_messages = []
             for channel in project['telegram_channels']:
-                answer = get_chatbot_answer_db(date, channel, cursor)
-                if answer:
-                    sentences = split_text_into_sentences(answer)
-                    messages = []
-                    for sentence in sentences:
-                        messages.append({
-                          'message': sentence,
-                        })
-                    search_action(date, channel, messages, cursor, 'answer_search', 1, 2)
+                found_messages = search_in_answers(date, channel, cursor) + search_in_messages(date, channel, cursor)
+                for message in found_messages:
+                    message['channel'] = channel
+                project_messages.extend(found_messages)
+            if project_messages: 
+                set_search_table(date, project['project'], project_messages, cursor)
         conn.commit()
     except Exception as e:
         traceback.print_exc() 
@@ -162,22 +181,3 @@ def search_in_answers(date, projects):
     finally:
         cursor.close()
         conn.close()
-
-def search_in_messages(date, projects):
-    conn = sqlite3.connect(DATABASE)
-    cursor = conn.cursor()
-    try:
-        for project in projects:
-            for channel in project['telegram_channels']:
-                messages = get_messages_db(date, channel, cursor)
-                if messages:
-                    search_action(date, channel, messages, cursor, 'messages_search', 1, 2)
-        conn.commit()
-    except Exception as e:
-        traceback.print_exc() 
-        print(f"An unexpected error occurred: {e}")
-    finally:
-        cursor.close()
-        conn.close()
-        
-#TODO combine search to event_search

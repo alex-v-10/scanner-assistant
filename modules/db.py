@@ -74,11 +74,10 @@ def create_table():
         ''')
         
         cursor.execute('''
-            CREATE TABLE IF NOT EXISTS event_search (
+            CREATE TABLE IF NOT EXISTS search (
                 id INTEGER PRIMARY KEY AUTOINCREMENT,
                 date TEXT,
                 project TEXT,
-                answer TEXT,
                 messages TEXT,
                 UNIQUE(date, project)
             )

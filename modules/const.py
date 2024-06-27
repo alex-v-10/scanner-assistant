@@ -17,14 +17,14 @@ KEY_WORDS = {
         'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'
     ],
     '2': [
-        'release', 'launch', 'alpha', 'beta', 'list', 'drop'
+        'release', 'launch', 'alpha', 'beta', 'list', 'drop', 'snapshot'
     ],
 }
 CHATBOT = {
     'chatbot_description': 'This is chat of a crypto project.',
     'chatbot_questions': [
         'Are there any releases, launches or listings planned? If yes, what date?',
-        'What events are happening or planned in the near future?” If yes, what date?',
+        'What events are happening or planned in the near future? If yes, what date?',
         'Are there any new features planned?'
     ]
 }

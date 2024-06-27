@@ -6,7 +6,7 @@ from modules.browser.browser import browse
 from modules.db import create_table
 from modules.telegram.telegram import (process_messages_with_chatbot,
                                        save_telegram_messages,
-                                       search_in_answers, search_in_messages)
+                                       search_in_answers, search_in_messages, search_messages)
 from modules.telegram.utils import clean_chatbot_answers, clean_search
 from modules.charts.charts import update_charts
 from modules.youtube.youtube import search_youtube
@@ -50,8 +50,7 @@ async def main_async():
             date = input("Input YYYY-MM-DD: ")
             if date == '':
                 date = get_current_date()
-            search_in_answers(date, projects)
-            search_in_messages(date, projects)
+            search_messages(date, projects)
             print('Search finished.')
             # clean_search()
         elif choice == '4':

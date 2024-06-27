@@ -74,6 +74,24 @@ def set_search_column(date, channel, found_messages, cursor, column):
         WHERE date = ? AND channel = ?
     ''', (messages_to_write, date, channel))
     
+def set_search_table(date, project, messages, cursor):
+    messages_to_write = json.dumps(messages)
+    cursor.execute('''
+        SELECT id FROM search
+        WHERE date = ? AND project = ?
+    ''', (date, project))
+    if cursor.fetchone() is None:
+        cursor.execute('''
+            INSERT INTO search (date, project, messages)
+            VALUES (?, ?, ?)
+        ''', (date, project, messages_to_write))
+    else:
+        cursor.execute('''
+            UPDATE search
+            SET messages = ?
+            WHERE date = ? AND project = ?
+        ''', (messages_to_write, date, project))
+    
 def add_channel_to_ignore_list(date, channel, cursor):
     cursor.execute('SELECT telegram_channels FROM ignore_list WHERE date = ?', (date,))
     row = cursor.fetchone()
