@@ -158,6 +158,7 @@ def search_in_messages(date, channel, cursor):
     if messages:
         for message in messages:
             message.pop('id', None)
+            message.pop('date', None)
         found_messages = search_action(date, channel, messages, cursor, 'messages_search', 1, 2)
     return found_messages
   
@@ -168,9 +169,15 @@ def search_messages(date, projects):
         for project in projects:
             project_messages = []
             for channel in project['telegram_channels']:
-                found_messages = search_in_answers(date, channel, cursor) + search_in_messages(date, channel, cursor)
-                for message in found_messages:
+                answer_messages = search_in_answers(date, channel, cursor)
+                for message in answer_messages:
                     message['channel'] = channel
+                    message['source'] = 'chatbot_answer'
+                telegram_messages = search_in_messages(date, channel, cursor)
+                for message in telegram_messages:
+                    message['channel'] = channel
+                    message['source'] = 'telegram_messages'
+                found_messages = answer_messages + telegram_messages
                 project_messages.extend(found_messages)
             if project_messages: 
                 set_search_table(date, project['project'], project_messages, cursor)
