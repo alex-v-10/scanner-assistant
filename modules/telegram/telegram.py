@@ -176,7 +176,7 @@ def search_messages(date, projects):
                 telegram_messages = search_in_messages(date, channel, cursor)
                 for message in telegram_messages:
                     message['channel'] = channel
-                    message['source'] = 'telegram_messages'
+                    message['source'] = 'messages'
                 found_messages = answer_messages + telegram_messages
                 project_messages.extend(found_messages)
             if project_messages: 

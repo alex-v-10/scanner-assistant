@@ -96,8 +96,8 @@ def get_current_date():
   
 def get_past_dates(number):
     current_date = datetime.now(timezone.utc)
-    past_week_dates = [(current_date - timedelta(days=i)).strftime('%Y-%m-%d') for i in range(number)]
-    return past_week_dates
+    past_dates = [(current_date - timedelta(days=i)).strftime('%Y-%m-%d') for i in range(number)]
+    return past_dates
       
 def get_start_end_of_day(date=None):
     if date:

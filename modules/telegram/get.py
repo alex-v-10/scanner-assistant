@@ -64,6 +64,9 @@ def get_chatbot_answer(date, channel, messages, groq_client):
     for message in messages:
         message.pop('id', None)
         message.pop('date', None)
+        if message['message'] is not None:
+            encoded_text = message['message'].encode('unicode-escape').decode('utf-8')
+            message['message'] = encoded_text
     prepared_data = {
       'channel': channel,
       'messages': messages
