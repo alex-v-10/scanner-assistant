@@ -82,6 +82,14 @@ def create_table():
                 UNIQUE(date, project)
             )
         ''')
+        
+        cursor.execute('''
+            CREATE TABLE IF NOT EXISTS projects (
+                project TEXT PRIMARY KEY,
+                is_favorite INTEGER,
+                is_hidden INTEGER
+            )
+        ''')
 
         conn.commit()
     except Exception as e:

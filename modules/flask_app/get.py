@@ -4,7 +4,7 @@ import traceback
 
 from ..const import DATABASE
 
-def get_searched_messages(date):
+def get_search_db(date):
     conn = sqlite3.connect(DATABASE)
     cursor = conn.cursor()
     data = {}
@@ -26,3 +26,25 @@ def get_searched_messages(date):
         cursor.close()
         conn.close()
     return data
+  
+def get_projects_db():
+  conn = sqlite3.connect(DATABASE)
+  cursor = conn.cursor()
+  data = {}
+  try:
+      cursor.execute('SELECT * FROM projects')
+      rows = cursor.fetchall()
+      for row in rows:
+          project, is_favorite, is_hidden = row
+          data[project] = {
+            'is_favorite': bool(is_favorite),
+            'is_hidden': bool(is_hidden),
+          }     
+  except Exception as e:
+      traceback.print_exc() 
+      print(f"An unexpected error occurred: {e}")
+      return None
+  finally:
+      cursor.close()
+      conn.close()
+  return data
